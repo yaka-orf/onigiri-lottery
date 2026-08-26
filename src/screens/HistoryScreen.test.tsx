@@ -35,8 +35,8 @@ describe('HistoryScreen', () => {
 
   it('セットが最新順で表示される', () => {
     const history = [
-      { results: [{ filling: '鮭', seasoning: '塩' }], at: 1000 },
-      { results: [{ filling: '梅', seasoning: '醤油' }], at: 2000 },
+      { id: 'a', results: [{ filling: '鮭', seasoning: '塩' }], at: 1000, fav: false },
+      { id: 'b', results: [{ filling: '梅', seasoning: '醤油' }], at: 2000, fav: false },
     ]
     render(<HistoryScreen app={mk(setState(history))} />)
     // セット単位の項目が最新順(最新=at:2000 の「梅」が先頭セットに含まれる)
@@ -48,7 +48,7 @@ describe('HistoryScreen', () => {
       filling: `具${i}`,
       seasoning: '塩',
     }))
-    render(<HistoryScreen app={mk(setState([{ results, at: 1000 }]))} />)
+    render(<HistoryScreen app={mk(setState([{ id: 'c', results, at: 1000, fav: false }]))} />)
     for (let i = 0; i < 5; i++) {
       expect(screen.getByText(`具${i}`)).toBeInTheDocument()
     }

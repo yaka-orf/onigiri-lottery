@@ -53,6 +53,8 @@ describe('appStorage', () => {
     const state = {
       fillings: ['鮭'],
       seasonings: ['塩'],
+      excludedFillings: [],
+      excludedSeasonings: [],
       history: [],
     }
     expect(saveState(state)).toBe(true)
