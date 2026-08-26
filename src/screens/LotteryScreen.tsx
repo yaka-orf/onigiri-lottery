@@ -118,7 +118,11 @@ export function LotteryScreen({ app }: Props) {
       {results && (
         <ol className="results" aria-label="抽選結果" key={spinCount}>
           {results.map((r, i) => (
-            <li key={i} className="result-item">
+            <li
+              key={i}
+              className="result-item"
+              style={{ animationDelay: `${0.03 + i * 0.06}s` }}
+            >
               <span className="result-index">{i + 1}</span>
               <span className="result-filling">
                 {isTwo(r) ? `${r.filling} ×${r.filling2}` : r.filling}
