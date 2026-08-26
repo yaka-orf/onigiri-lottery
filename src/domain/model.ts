@@ -12,16 +12,38 @@ export interface LotterySettings {
   count: number
 }
 
-// --- 具カテゴリ ---
-export type Category = 'meat' | 'fish' | 'classic' | 'other'
+// --- 具カテゴリ(カスタムタグ対応) ---
+export type CategoryId = string
+export interface Tag {
+  id: CategoryId
+  label: string
+}
+/** 固定ID(デフォルトタグ・フォールバック先) */
+export const CATEGORY_MEAT = 'meat'
+export const CATEGORY_FISH = 'fish'
+export const CATEGORY_CLASSIC = 'classic'
+export const CATEGORY_OTHER = 'other'
+export type Category = CategoryId
 export const CATEGORIES: readonly Category[] = ['meat', 'fish', 'classic', 'other'] as const
-export const CATEGORY_LABELS: Record<Category, string> = {
+export const DEFAULT_CATEGORY: Category = CATEGORY_OTHER
+
+export const defaultTags: Tag[] = [
+  { id: CATEGORY_MEAT, label: '肉' },
+  { id: CATEGORY_FISH, label: '魚介' },
+  { id: CATEGORY_CLASSIC, label: '定番' },
+  { id: CATEGORY_OTHER, label: 'その他' },
+]
+
+/** ラベル解説用レガシー(固定4タグのラベル) */
+export const CATEGORY_LABELS: Record<string, string> = {
   meat: '肉',
   fish: '魚介',
   classic: '定番',
   other: 'その他',
 }
-export const DEFAULT_CATEGORY: Category = 'other'
+
+export const tagLabel = (tags: Tag[], id: CategoryId): string =>
+  tags.find((t) => t.id === id)?.label ?? CATEGORY_LABELS[CATEGORY_OTHER] ?? 'その他'
 
 /** デフォルト8具のカテゴリ初期割当 */
 export const defaultFillingCategories: Record<string, Category> = {
@@ -42,6 +64,7 @@ export interface AppState {
   excludedSeasonings: string[]
   settings: LotterySettings
   soundEnabled: boolean
+  tags: Tag[]
   fillingCategories: Record<string, Category>
   history: HistorySet[]
 }
@@ -89,6 +112,7 @@ export function normalizeState(raw: unknown): AppState {
     excludedSeasonings: [],
     settings: { ...defaultSettings },
     soundEnabled: true,
+    tags: defaultTags.map((t) => ({ ...t })),
     fillingCategories: { ...defaultFillingCategories },
     history: [],
   })
@@ -162,6 +186,25 @@ export function normalizeState(raw: unknown): AppState {
     return { mode, count }
   }
 
+  // タグ正規化: id/label とも文字列のもののみ。最低1つ必要(空ならデフォルト)
+  const normalizeTags = (raw: unknown): Tag[] => {
+    if (!Array.isArray(raw)) return defaultTags.map((t) => ({ ...t }))
+    const out: Tag[] = []
+    const seen = new Set<string>()
+    for (const x of raw) {
+      if (typeof x !== 'object' || x === null) continue
+      const o = x as Record<string, unknown>
+      if (typeof o.id !== 'string' || o.id.length === 0) continue
+      if (typeof o.label !== 'string' || o.label.length === 0) continue
+      if (seen.has(o.id)) continue
+      seen.add(o.id)
+      out.push({ id: o.id, label: o.label })
+    }
+    return out.length > 0 ? out : defaultTags.map((t) => ({ ...t }))
+  }
+  const tags = normalizeTags(r.tags)
+  const tagIds = new Set(tags.map((t) => t.id))
+
   // カテゴリ正規化: 未知の具名は除去、欠損は other 補完、不正値は other 置換
   const validFinalFillings =
     fillings.length > 0 ? fillings : [...defaultFillings]
@@ -173,12 +216,11 @@ export function normalizeState(raw: unknown): AppState {
       typeof raw === 'object' && raw !== null
         ? (raw as Record<string, unknown>)
         : {}
-    const isCategory = (x: unknown): x is Category =>
-      typeof x === 'string' && (CATEGORIES as readonly string[]).includes(x)
     const out: Record<string, Category> = {}
     for (const name of names) {
       const v = source[name]
-      out[name] = isCategory(v) ? v : DEFAULT_CATEGORY
+      out[name] =
+        typeof v === 'string' && tagIds.has(v) ? v : DEFAULT_CATEGORY
     }
     return out
   }
@@ -208,6 +250,7 @@ export function normalizeState(raw: unknown): AppState {
     excludedSeasonings,
     settings: normalizeSettings(r.settings),
     soundEnabled: r.soundEnabled !== false,
+    tags,
     fillingCategories: mergedCategories,
     history: pruneHistory(history, MAX_HISTORY),
   }

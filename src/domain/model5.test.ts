@@ -62,6 +62,7 @@ describe('fillingCategories 正規化', () => {
       settings: { mode: 'one', count: 5 },
       soundEnabled: true,
       fillingCategories: { 鮭: 'fish', 唐揚げ: 'meat' },
+      tags: [],
       history: [],
     }
     const state = normalizeState(base)

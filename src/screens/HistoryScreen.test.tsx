@@ -12,6 +12,7 @@ const setState = (history: AppState['history']): AppState => ({
   settings: { mode: 'one', count: 5 },
   soundEnabled: true,
   fillingCategories: { 鮭: 'fish' },
+  tags: [],
   history,
 })
 

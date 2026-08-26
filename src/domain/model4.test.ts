@@ -43,6 +43,7 @@ describe('soundEnabled 正規化', () => {
       settings: { mode: 'one', count: 5 },
       soundEnabled: false,
       fillingCategories: { ...defaultFillingCategories },
+      tags: [],
       history: [],
     }
     // AppState をそのまま正規化に通しても soundEnabled が保たれる

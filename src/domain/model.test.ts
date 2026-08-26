@@ -31,6 +31,12 @@ describe('normalizeState', () => {
       settings: { mode: 'one', count: 5 },
       soundEnabled: true,
       fillingCategories: { ...defaultFillingCategories },
+      tags: [
+        { id: 'meat', label: '肉' },
+        { id: 'fish', label: '魚介' },
+        { id: 'classic', label: '定番' },
+        { id: 'other', label: 'その他' },
+      ],
       history: [],
     })
   })
@@ -43,6 +49,12 @@ describe('normalizeState', () => {
       settings: { mode: 'one', count: 5 },
       soundEnabled: true,
       fillingCategories: { ...defaultFillingCategories },
+      tags: [
+        { id: 'meat', label: '肉' },
+        { id: 'fish', label: '魚介' },
+        { id: 'classic', label: '定番' },
+        { id: 'other', label: 'その他' },
+      ],
       history: [],
     })
   })

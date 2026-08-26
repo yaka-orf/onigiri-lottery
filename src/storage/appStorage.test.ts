@@ -23,6 +23,7 @@ describe('appStorage', () => {
       settings: { mode: 'one', count: 5 },
       soundEnabled: true,
       fillingCategories: { 鮭: 'fish', 梅: 'classic' },
+      tags: [],
       history: [
         {
           id: 'test-id-1',
@@ -61,6 +62,7 @@ describe('appStorage', () => {
       settings: { mode: 'one', count: 5 },
       soundEnabled: true,
       fillingCategories: { 鮭: 'fish', 梅: 'classic' },
+      tags: [],
       history: [],
     }
     expect(saveState(state)).toBe(true)
@@ -80,6 +82,7 @@ describe('appStorage', () => {
         settings: { mode: 'one', count: 5 },
         soundEnabled: true,
         fillingCategories: { 鮭: 'fish' },
+        tags: [],
         history: [],
       } satisfies AppState),
     ).toBe(false)
