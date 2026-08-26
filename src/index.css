@@ -265,6 +265,48 @@ button.danger {
 }
 /* 遅延はJSで style.animationDelay を渡す(個数上限に依存しない) */
 
+/* --- 共有ボタン --- */
+.share-button {
+  width: 100%;
+  padding: 12px 16px;
+  margin-top: 4px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 15px;
+  font-family: inherit;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.share-button:active {
+  background: #e2eef4;
+}
+
+/* --- サウンドトグル --- */
+.sound-toggle-row {
+  margin: 4px 0 8px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sound-toggle {
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  min-height: 36px;
+}
+
+.sound-toggle.muted {
+  opacity: 0.55;
+}
+
 @keyframes rise {
   from {
     opacity: 0;

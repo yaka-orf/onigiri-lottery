@@ -19,6 +19,7 @@ type Action =
   | { type: 'TOGGLE_EXCLUDE'; kind: ListKind; name: string }
   | { type: 'SET_MODE'; mode: LotteryMode }
   | { type: 'SET_COUNT'; count: number }
+  | { type: 'TOGGLE_SOUND' }
   | { type: 'RECORD_DRAW'; results: LotteryResult[] }
   | { type: 'TOGGLE_FAV'; id: string }
   | { type: 'CLEAR_HISTORY' }
@@ -92,6 +93,8 @@ export function reducer(state: AppState, action: Action): AppState {
         ...state,
         settings: { ...state.settings, count: Math.min(10, Math.max(1, action.count)) },
       }
+    case 'TOGGLE_SOUND':
+      return { ...state, soundEnabled: !state.soundEnabled }
     case 'RECORD_DRAW': {
       const set = {
         id: newHistoryId(),
@@ -130,6 +133,7 @@ export interface UseAppState {
   toggleExcludeSeasoning: (name: string) => boolean
   setLotteryMode: (mode: LotteryMode) => void
   setLotteryCount: (count: number) => void
+  toggleSound: () => void
   recordDraw: (results: LotteryResult[]) => void
   toggleFavorite: (id: string) => void
   clearHistory: () => void
@@ -186,6 +190,9 @@ export function useAppState(): UseAppState {
   const setLotteryCount = useCallback((count: number) => {
     dispatch({ type: 'SET_COUNT', count })
   }, [])
+  const toggleSound = useCallback(() => {
+    dispatch({ type: 'TOGGLE_SOUND' })
+  }, [])
   const recordDraw = useCallback((results: LotteryResult[]) => {
     dispatch({ type: 'RECORD_DRAW', results })
   }, [])
@@ -211,6 +218,7 @@ export function useAppState(): UseAppState {
     toggleExcludeSeasoning: seasoningOps.toggleExclude,
     setLotteryMode,
     setLotteryCount,
+    toggleSound,
     recordDraw,
     toggleFavorite,
     clearHistory,

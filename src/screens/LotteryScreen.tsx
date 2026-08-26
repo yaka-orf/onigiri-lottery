@@ -4,6 +4,8 @@ import { drawSetTwoFillings } from '../domain/lottery2'
 import type { LotteryResult } from '../domain/lottery'
 import type { LotteryResult2 } from '../domain/lottery2'
 import type { UseAppState } from '../hooks/useAppState'
+import { shareOrCopy } from '../lib/share'
+import { playSpin, playStop } from '../lib/sound'
 
 interface Props {
   app: UseAppState
@@ -19,15 +21,19 @@ export function LotteryScreen({ app }: Props) {
   const [results, setResults] = useState<LotteryResult[] | LotteryResult2[] | null>(null)
   // 再抽選時もアニメーションを再生し直すため、抽選ごとにキーを変える
   const [spinCount, setSpinCount] = useState(0)
+  // 共有ボタンのフィードバック表示
+  const [shareState, setShareState] = useState<'idle' | 'done'>('idle')
 
   const fillings = app.effectiveFillings
   const seasonings = app.effectiveSeasonings
+  const soundEnabled = app.state.soundEnabled
 
   const needsTwo = mode === 'two'
   const canSpin = needsTwo ? fillings.length >= 2 : fillings.length > 0
 
   const spin = () => {
     if (!canSpin) return
+    if (soundEnabled) playSpin()
     if (needsTwo) {
       const r = drawSetTwoFillings(fillings, seasonings, count)
       if (r === null) return
@@ -40,6 +46,19 @@ export function LotteryScreen({ app }: Props) {
       setResults(r)
       setSpinCount((c) => c + 1)
       app.recordDraw(r)
+    }
+    if (soundEnabled) {
+      // 結果アニメーションの開始に合わせて確定音
+      window.setTimeout(() => playStop(), 300)
+    }
+  }
+
+  const handleShare = async () => {
+    if (!results) return
+    const outcome = await shareOrCopy(results)
+    if (outcome !== 'failed') {
+      setShareState('done')
+      window.setTimeout(() => setShareState('idle'), 1500)
     }
   }
 
@@ -116,23 +135,32 @@ export function LotteryScreen({ app }: Props) {
         おにる！
       </button>
       {results && (
-        <ol className="results" aria-label="抽選結果" key={spinCount}>
-          {results.map((r, i) => (
-            <li
-              key={i}
-              className="result-item"
-              style={{ animationDelay: `${0.03 + i * 0.06}s` }}
-            >
-              <span className="result-index">{i + 1}</span>
-              <span className="result-filling">
-                {isTwo(r) ? `${r.filling} ×${r.filling2}` : r.filling}
-              </span>
-              <span className="result-seasoning">
-                {r.seasoning === '' ? '—' : r.seasoning}
-              </span>
-            </li>
-          ))}
-        </ol>
+        <div className="results-wrap">
+          <ol className="results" aria-label="抽選結果" key={spinCount}>
+            {results.map((r, i) => (
+              <li
+                key={i}
+                className="result-item"
+                style={{ animationDelay: `${0.03 + i * 0.06}s` }}
+              >
+                <span className="result-index">{i + 1}</span>
+                <span className="result-filling">
+                  {isTwo(r) ? `${r.filling} ×${r.filling2}` : r.filling}
+                </span>
+                <span className="result-seasoning">
+                  {r.seasoning === '' ? '—' : r.seasoning}
+                </span>
+              </li>
+            ))}
+          </ol>
+          <button
+            type="button"
+            className="share-button"
+            onClick={handleShare}
+          >
+            {shareState === 'done' ? 'コピーしました' : '結果を共有'}
+          </button>
+        </div>
       )}
     </div>
   )

@@ -80,6 +80,18 @@ export function ManageScreen({ app }: Props) {
         </button>
       </div>
 
+      <div className="sound-toggle-row">
+        <button
+          type="button"
+          className={`sound-toggle${app.state.soundEnabled ? '' : ' muted'}`}
+          onClick={app.toggleSound}
+          aria-pressed={!app.state.soundEnabled}
+          aria-label={app.state.soundEnabled ? 'サウンドをオフにする' : 'サウンドをオンにする'}
+        >
+          {app.state.soundEnabled ? '🔊 サウンド ON' : '🔇 サウンド OFF'}
+        </button>
+      </div>
+
       <p className="exclude-hint">「除外」をタップすると抽選対象から外れます(リストには残ります)</p>
 
       <ul className="item-list">
