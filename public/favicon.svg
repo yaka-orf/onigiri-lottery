@@ -1,23 +1,48 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
   <!-- 背景(薄い水色・角丸) -->
-  <rect width="128" height="128" rx="28" fill="#ddeef5"/>
-  <!-- おにぎり本体: やや横広の三角形・角を軽く丸める -->
-  <path d="M64 16
-           Q 68 16 71 21
-           L 101 84
-           Q 104 90 98 90
-           L 30 90
-           Q 24 90 27 84
-           L 57 21
-           Q 60 16 64 16 Z"
-        fill="#ffffff"/>
-  <!-- 海苔: 底辺全幅・下端は本体の底辺と同一直線 -->
-  <path d="M30 70
-           L 98 70
-           L 98 90
-           L 30 90
-           Z"
-        fill="#1f3a2e"/>
-  <!-- 海苔の上端ライン -->
-  <rect x="30" y="70" width="68" height="4" fill="#162c23"/>
+  <rect width="128" height="128" rx="28" fill="#cfe6f0"/>
+
+  <defs>
+    <!-- おにぎり本体: iOS Safe Area内で最大化・中心配置 -->
+    <path id="rice" d="M64 25
+             C 70.5 25, 74.5 28.5, 77.5 34
+             L 97 74
+             C 101.5 82, 98.5 93, 90 94
+             L 38 94
+             C 29.5 93, 26.5 82, 31 74
+             L 50.5 34
+             C 53.5 28.5, 57.5 25, 64 25 Z"/>
+    <clipPath id="riceClip"><use href="#rice"/></clipPath>
+  </defs>
+
+  <!-- 米(純白#F8F8F8・薄いグレーの輪郭) -->
+  <use href="#rice" fill="#f8f8f8" stroke="#e8e8e8" stroke-width="1.5"/>
+
+  <!-- 海苔: 非常に暗い深緑・わずかに緑のニュアンス -->
+  <g clip-path="url(#riceClip)">
+    <!-- 海苔本体(#0d1a0f・非常に暗い深緑) -->
+    <rect x="26.5" y="53" width="75" height="24" fill="#0d1a0f"/>
+
+    <!-- 海苔の上端の境界を締める -->
+    <line x1="26.5" y1="53" x2="101.5" y2="53" stroke="#080d08" stroke-width="1.5" opacity="0.8"/>
+
+    <!-- 海苔の質感(わずかに緑のニュアンスを持たせる) -->
+    <ellipse cx="45" cy="63.5" rx="10" ry="5" fill="#12201a" opacity="0.25"/>
+    <ellipse cx="81" cy="67" rx="12" ry="4.5" fill="#0f1c12" opacity="0.22"/>
+    <ellipse cx="63" cy="59" rx="8" ry="3.5" fill="#111e14" opacity="0.2"/>
+  </g>
+
+  <!-- 米粒(控えめ・ベージュ系) -->
+  <g clip-path="url(#riceClip)" fill="#e8ddc8" opacity="0.75">
+    <ellipse cx="60" cy="36" rx="2.9" ry="1.35" transform="rotate(-30 60 36)"/>
+    <ellipse cx="72" cy="42" rx="2.9" ry="1.35" transform="rotate(22 72 42)"/>
+    <ellipse cx="48" cy="47" rx="2.9" ry="1.35" transform="rotate(-14 48 47)"/>
+    <ellipse cx="81" cy="51" rx="2.9" ry="1.35" transform="rotate(-26 81 51)"/>
+    <ellipse cx="64" cy="31" rx="2.5" ry="1.25" transform="rotate(6 64 31)"/>
+    <ellipse cx="54" cy="41" rx="2.3" ry="1.15" transform="rotate(18 54 41)"/>
+    <ellipse cx="76" cy="34" rx="2.5" ry="1.25" transform="rotate(-42 76 34)"/>
+    <ellipse cx="45" cy="39" rx="2.4" ry="1.15" transform="rotate(25 45 39)"/>
+    <ellipse cx="67" cy="80" rx="2.7" ry="1.25" transform="rotate(-8 67 80)"/>
+    <ellipse cx="51" cy="85" rx="2.5" ry="1.15" transform="rotate(15 51 85)"/>
+  </g>
 </svg>
