@@ -8,7 +8,7 @@ type TabId = 'lottery' | 'manage' | 'history'
 
 const TABS: { id: TabId; label: string }[] = [
   { id: 'lottery', label: '抽選' },
-  { id: 'manage', label: 'リスト' },
+  { id: 'manage', label: '管理' },
   { id: 'history', label: '履歴' },
 ]
 

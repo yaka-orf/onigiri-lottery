@@ -143,7 +143,8 @@ export function reducer(state: AppState, action: Action): AppState {
         ),
       }
     case 'CLEAR_HISTORY':
-      return { ...state, history: [] }
+      // お気に入り(★付き)は削除対象外
+      return { ...state, history: state.history.filter((h) => h.fav) }
   }
 }
 

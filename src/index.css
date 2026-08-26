@@ -521,7 +521,7 @@ button.danger {
 
 .history-meta {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
   margin-bottom: 8px;
 }
@@ -544,15 +544,28 @@ button.danger {
   border: 1px solid #ecd9b5;
 }
 
-.history-no {
-  font-size: 12px;
-  color: var(--ink-soft);
-}
-
 .history-meta time {
   font-size: 13px;
   color: var(--ink-soft);
   font-variant-numeric: tabular-nums;
+}
+
+/* 履歴のコピー(コピーボタン) */
+.copy-btn {
+  margin-left: auto;
+  padding: 6px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  min-height: 32px;
+}
+
+.copy-btn:active {
+  background: #e2eef4;
 }
 
 .history-results {

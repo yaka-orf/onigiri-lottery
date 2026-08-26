@@ -97,17 +97,23 @@ describe('useAppState(拡張: 除外・fav)', () => {
     expect(result.current.state.history).toHaveLength(6)
   })
 
-  it('clearHistory は fav も含めて全削除', () => {
+  it('clearHistory は fav を残して削除', () => {
     const { result } = renderHook(() => useAppState())
     act(() => {
       result.current.recordDraw([pair('鮭', '塩')])
     })
+    act(() => {
+      result.current.recordDraw([pair('梅', '醤油')])
+    })
+    // 1件目を fav にする
     act(() => {
       result.current.toggleFavorite(result.current.state.history[0].id)
     })
     act(() => {
       result.current.clearHistory()
     })
-    expect(result.current.state.history).toEqual([])
+    // fav のみ残る
+    expect(result.current.state.history).toHaveLength(1)
+    expect(result.current.state.history[0].fav).toBe(true)
   })
 })

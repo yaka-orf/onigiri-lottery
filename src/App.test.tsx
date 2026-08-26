@@ -12,8 +12,8 @@ describe('App', () => {
     render(<App />)
     // 初期は抽選画面
     expect(screen.getByRole('button', { name: 'おにる！' })).toBeInTheDocument()
-    // リスト管理へ
-    fireEvent.click(screen.getByRole('tab', { name: 'リスト' }))
+    // 管理タブへ
+    fireEvent.click(screen.getByRole('tab', { name: '管理' }))
     expect(screen.getByPlaceholderText(/新しい具を追加/)).toBeInTheDocument()
     // 履歴へ
     fireEvent.click(screen.getByRole('tab', { name: '履歴' }))
@@ -40,9 +40,9 @@ describe('App', () => {
     expect(screen.getAllByText('鮭')).toHaveLength(5)
   })
 
-  it('統合フロー: リストで具を追加してlocalStorageに保存される', () => {
+  it('統合フロー: 管理で具を追加してlocalStorageに保存される', () => {
     render(<App />)
-    fireEvent.click(screen.getByRole('tab', { name: 'リスト' }))
+    fireEvent.click(screen.getByRole('tab', { name: '管理' }))
     fireEvent.change(screen.getByPlaceholderText(/新しい具を追加/), {
       target: { value: '味しらべ' },
     })

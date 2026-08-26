@@ -5,7 +5,7 @@ import type { LotteryResult } from '../domain/lottery'
 import type { LotteryResult2 } from '../domain/lottery2'
 import type { UseAppState } from '../hooks/useAppState'
 import { shareOrCopy } from '../lib/share'
-import { playSpin, playStop } from '../lib/sound'
+import { playSpin } from '../lib/sound'
 import {
   CATEGORIES,
   CATEGORY_LABELS,
@@ -61,10 +61,6 @@ export function LotteryScreen({ app }: Props) {
       setResults(r)
       setSpinCount((c) => c + 1)
       app.recordDraw(r)
-    }
-    if (soundEnabled) {
-      // 結果アニメーションの開始に合わせて確定音
-      window.setTimeout(() => playStop(), 300)
     }
   }
 
@@ -155,7 +151,7 @@ export function LotteryScreen({ app }: Props) {
 
       {!canSpin && filteredFillings.length === 0 && (
         <p className="notice" role="alert">
-          抽選できる具がありません(リストタブで除外を解除するか追加してください)
+          抽選できる具がありません(管理タブで除外を解除するか追加してください)
         </p>
       )}
       {!canSpin && filteredFillings.length < 2 && needsTwo && filteredFillings.length > 0 && (
@@ -195,7 +191,7 @@ export function LotteryScreen({ app }: Props) {
             className="share-button"
             onClick={handleShare}
           >
-            {shareState === 'done' ? 'コピーしました' : '結果を共有'}
+            {shareState === 'done' ? 'コピーしました' : '結果をコピー'}
           </button>
         </div>
       )}

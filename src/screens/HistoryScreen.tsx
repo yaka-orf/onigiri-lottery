@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import type { UseAppState } from '../hooks/useAppState'
+import { buildShareText } from '../lib/share'
 
 interface Props {
   app: UseAppState
@@ -14,10 +16,23 @@ export function HistoryScreen({ app }: Props) {
   const { history } = app.state
   // 最新順
   const sorted = [...history].reverse()
+  // コピー完了フィードバック(set.id → 残り表示時間)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
 
   const clearAll = () => {
-    if (!window.confirm('お気に入りを含む全履歴を削除しますか?')) return
+    if (!window.confirm('お気に入り以外の全履歴を削除しますか?')) return
     app.clearHistory()
+  }
+
+  const copySet = async (id: string, results: typeof history[number]['results']) => {
+    const text = buildShareText(results)
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopiedId(id)
+      window.setTimeout(() => setCopiedId((c) => (c === id ? null : c)), 1500)
+    } catch {
+      // コピー失敗は無視(フィードバックなし)
+    }
   }
 
   return (
@@ -32,7 +47,7 @@ export function HistoryScreen({ app }: Props) {
             </button>
           </div>
           <ul className="history-list">
-            {sorted.map((set, i) => (
+            {sorted.map((set) => (
               <li key={set.id} className={`history-set${set.fav ? ' favored' : ''}`}>
                 <div className="history-meta">
                   <button
@@ -44,8 +59,14 @@ export function HistoryScreen({ app }: Props) {
                   >
                     {set.fav ? '★' : '☆'}
                   </button>
-                  <span className="history-no">{sorted.length - i}</span>
                   <time>{fmt(set.at)}</time>
+                  <button
+                    type="button"
+                    className="copy-btn"
+                    onClick={() => copySet(set.id, set.results)}
+                  >
+                    {copiedId === set.id ? 'コピーしました' : 'コピー'}
+                  </button>
                 </div>
                 <ol className="history-results">
                   {set.results.map((r, j) => {

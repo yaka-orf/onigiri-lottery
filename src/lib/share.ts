@@ -8,7 +8,7 @@ const fillingLabel = (r: Result): string =>
 
 /** 抽選結果を共有用テキストに変換する */
 export function buildShareText(results: Result[]): string {
-  const lines = ['おにシミュ抽選結果 🍙']
+  const lines = ['おにシミュ抽選結果']
   results.forEach((r, i) => {
     const seasoning = r.seasoning === '' ? '—' : r.seasoning
     lines.push(`${i + 1}. ${fillingLabel(r)} × ${seasoning}`)
