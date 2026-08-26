@@ -7,8 +7,7 @@ import type { UseAppState } from '../hooks/useAppState'
 import { shareOrCopy } from '../lib/share'
 import { playSpin } from '../lib/sound'
 import {
-  CATEGORIES,
-  CATEGORY_LABELS,
+  DEFAULT_CATEGORY,
   type Category,
 } from '../domain/model'
 
@@ -41,7 +40,7 @@ export function LotteryScreen({ app }: Props) {
   const filteredFillings =
     categoryFilter === 'all'
       ? fillings
-      : fillings.filter((f) => (categories[f] ?? 'other') === categoryFilter)
+      : fillings.filter((f) => (categories[f] ?? DEFAULT_CATEGORY) === categoryFilter)
 
   const needsTwo = mode === 'two'
   const canSpin = needsTwo ? filteredFillings.length >= 2 : filteredFillings.length > 0
@@ -87,15 +86,15 @@ export function LotteryScreen({ app }: Props) {
         >
           全部
         </button>
-        {CATEGORIES.map((c) => (
+        {app.state.tags.map((t) => (
           <button
-            key={c}
+            key={t.id}
             type="button"
-            className={`chip${categoryFilter === c ? ' active' : ''}`}
-            onClick={() => setCategoryFilter(c)}
-            aria-pressed={categoryFilter === c}
+            className={`chip${categoryFilter === t.id ? ' active' : ''}`}
+            onClick={() => setCategoryFilter(t.id)}
+            aria-pressed={categoryFilter === t.id}
           >
-            {CATEGORY_LABELS[c]}
+            {t.label}
           </button>
         ))}
       </div>

@@ -11,6 +11,12 @@ const mk = (overrides: Partial<UseAppState> = {}): UseAppState => ({
     excludedSeasonings: [],
     settings: { mode: 'one', count: 5 },
     soundEnabled: true,
+    tags: [
+      { id: 'meat', label: '肉' },
+      { id: 'fish', label: '魚介' },
+      { id: 'classic', label: '定番' },
+      { id: 'other', label: 'その他' },
+    ],
     fillingCategories: { 鮭: 'fish', 梅: 'classic' },
     history: [],
   },
@@ -31,6 +37,9 @@ const mk = (overrides: Partial<UseAppState> = {}): UseAppState => ({
   setLotteryCount: vi.fn(),
   toggleSound: vi.fn(),
   setFillingCategory: vi.fn(),
+  addTag: vi.fn(() => true),
+  renameTag: vi.fn(() => true),
+  removeTag: vi.fn(() => true),
   recordDraw: vi.fn(),
   toggleFavorite: vi.fn(),
   clearHistory: vi.fn(),
@@ -57,16 +66,16 @@ describe('ManageScreen', () => {
     it('入力して追加ボタンで addFilling が呼ばれる', () => {
       const app = mk()
       render(<ManageScreen app={app} />)
-      fireEvent.change(screen.getByPlaceholderText(/追加/), {
+      fireEvent.change(screen.getByPlaceholderText('新しい具を追加'), {
         target: { value: '味しらべ' },
       })
-      fireEvent.click(screen.getByRole('button', { name: '追加' }))
+      fireEvent.click(screen.getAllByRole('button', { name: '追加' })[1])
       expect(app.addFilling).toHaveBeenCalledWith('味しらべ')
     })
     it('空入力では呼ばれない', () => {
       const app = mk()
       render(<ManageScreen app={app} />)
-      fireEvent.click(screen.getByRole('button', { name: '追加' }))
+      fireEvent.click(screen.getAllByRole('button', { name: '追加' })[1])
       expect(app.addFilling).not.toHaveBeenCalled()
     })
   })
@@ -93,6 +102,7 @@ describe('ManageScreen', () => {
     it('編集ボタン→入力→保存で updateFilling 呼び出し', () => {
       const app = mk()
       render(<ManageScreen app={app} />)
+      // 具リスト側の編集ボタン(タグ側は aria-label 付きで名前が異なる)
       fireEvent.click(screen.getAllByRole('button', { name: '編集' })[0])
       const input = screen.getByDisplayValue('鮭')
       fireEvent.change(input, { target: { value: '味しらべ' } })
@@ -111,7 +121,7 @@ describe('ManageScreen', () => {
     it('drop で moveFilling(from, to) が呼ばれる', () => {
       const app = mk()
       render(<ManageScreen app={app} />)
-      const rows = screen.getAllByRole('listitem')
+      const rows = document.querySelectorAll('.item-list li')
       // 0行目をdrag開始 → 1行目にdrop
       fireEvent.dragStart(rows[0], { dataTransfer: { setData: vi.fn(), effectAllowed: 'move' } })
       fireEvent.dragOver(rows[1], { dataTransfer: { dropEffect: 'move' } })
@@ -122,7 +132,7 @@ describe('ManageScreen', () => {
     it('同一行への drop では move しない', () => {
       const app = mk()
       render(<ManageScreen app={app} />)
-      const rows = screen.getAllByRole('listitem')
+      const rows = document.querySelectorAll('.item-list li')
       fireEvent.dragStart(rows[0], { dataTransfer: { setData: vi.fn(), effectAllowed: 'move' } })
       fireEvent.drop(rows[0], { dataTransfer: { getData: () => '0' } })
       expect(app.moveFilling).not.toHaveBeenCalled()

@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import type { UseAppState } from '../hooks/useAppState'
-import { CATEGORIES, CATEGORY_LABELS, type Category } from '../domain/model'
+import { DEFAULT_CATEGORY, type Category } from '../domain/model'
 
 interface Props {
   app: UseAppState
@@ -13,6 +13,10 @@ export function ManageScreen({ app }: Props) {
   const [input, setInput] = useState('')
   const [editing, setEditing] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
+  // タグ管理状態
+  const [tagInput, setTagInput] = useState('')
+  const [editingTagId, setEditingTagId] = useState<string | null>(null)
+  const [editTagValue, setEditTagValue] = useState('')
   // ドラッグ&ドロップ並べ替え状態
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [overIndex, setOverIndex] = useState<number | null>(null)
@@ -62,6 +66,28 @@ export function ManageScreen({ app }: Props) {
     else app.toggleExcludeSeasoning(name)
   }
 
+  // --- タグ管理 ---
+  const addTag = () => {
+    const label = tagInput.trim()
+    if (!label) return
+    if (app.addTag(label)) setTagInput('')
+  }
+
+  const saveTagEdit = () => {
+    if (editingTagId === null) return
+    const label = editTagValue.trim()
+    if (!label || label === app.state.tags.find((t) => t.id === editingTagId)?.label) {
+      setEditingTagId(null)
+      return
+    }
+    if (app.renameTag(editingTagId, label)) setEditingTagId(null)
+  }
+
+  const removeTag = (id: string) => {
+    if (!window.confirm('このタグを削除しますか?(付いていた具は「その他」になります)')) return
+    app.removeTag(id)
+  }
+
   // --- ドラッグ&ドロップ並べ替え ---
   const move = (from: number, to: number) => {
     if (isFillings) app.moveFilling(from, to)
@@ -100,6 +126,7 @@ export function ManageScreen({ app }: Props) {
     from: number
     currentIndex: number
     y: number
+    startY: number
   } | null>(null)
   const rowHeightRef = useRef(0)
   const listRef = useRef<HTMLUListElement>(null)
@@ -107,7 +134,7 @@ export function ManageScreen({ app }: Props) {
   const startTouchDrag = (from: number, y: number) => {
     const row = listRef.current?.children[from] as HTMLElement | undefined
     rowHeightRef.current = row ? row.offsetHeight : 48
-    setTouchDrag({ from, currentIndex: from, y })
+    setTouchDrag({ from, currentIndex: from, y, startY: y })
   }
 
   const moveTouchDrag = (y: number) => {
@@ -118,8 +145,26 @@ export function ManageScreen({ app }: Props) {
         0,
         Math.min(list.length - 1, d.from + delta),
       )
-      return { ...d, currentIndex: next }
+      return { ...d, currentIndex: next, y: d.y }
     })
+  }
+
+  // ドラッグ行の見た目のオフセット(指に追従)
+  const touchOffset = (index: number): number => {
+    if (!touchDrag) return 0
+    if (touchDrag.from === index) {
+      // ドラッグ中の行: currentIndex の位置までずらす
+      return (touchDrag.currentIndex - touchDrag.from) * rowHeightRef.current
+    }
+    // それ以外の行: ドラッグ行が通り過ぎる分を詰める
+    const { from, currentIndex } = touchDrag
+    if (from < currentIndex && index > from && index <= currentIndex) {
+      return -rowHeightRef.current
+    }
+    if (from > currentIndex && index >= currentIndex && index < from) {
+      return rowHeightRef.current
+    }
+    return 0
   }
 
   const endTouchDrag = () => {
@@ -168,6 +213,66 @@ export function ManageScreen({ app }: Props) {
 
       <p className="exclude-hint">「除外」をタップすると抽選対象から外れます(リストには残ります)</p>
 
+      {isFillings && (
+        <div className="tag-section">
+          <h2 className="tag-heading">タグ</h2>
+          <ul className="tag-list">
+            {app.state.tags.map((t) => (
+              <li key={t.id} className="tag-row">
+                {editingTagId === t.id ? (
+                  <>
+                    <input
+                      className="edit-input tag-edit-input"
+                      value={editTagValue}
+                      onChange={(e) => setEditTagValue(e.target.value)}
+                      aria-label={`タグ${t.label}を編集`}
+                    />
+                    <button type="button" onClick={saveTagEdit}>保存</button>
+                    <button type="button" onClick={() => setEditingTagId(null)}>キャンセル</button>
+                  </>
+                ) : (
+                  <>
+                    <span className="tag-label">{t.label}</span>
+                    {t.id === DEFAULT_CATEGORY && <span className="tag-note">(既定)</span>}
+                    <button
+                      type="button"
+                      aria-label={`タグ${t.label}を編集`}
+                      onClick={() => {
+                        setEditingTagId(t.id)
+                        setEditTagValue(t.label)
+                      }}
+                    >
+                      編集
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeTag(t.id)}
+                      disabled={t.id === DEFAULT_CATEGORY}
+                      aria-label={`タグ${t.label}を削除`}
+                    >
+                      削除
+                    </button>
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
+          <div className="add-row">
+            <input
+              className="add-input"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              placeholder="新しいタグ名"
+              aria-label="新しいタグ名"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') addTag()
+              }}
+            />
+            <button type="button" onClick={addTag}>追加</button>
+          </div>
+        </div>
+      )}
+
       <ul className="item-list" ref={listRef}>
         {list.map((name, index) => {
           const isExcluded = excluded.includes(name)
@@ -178,6 +283,17 @@ export function ManageScreen({ app }: Props) {
             <li
               key={name}
               className={`item-row${isExcluded ? ' excluded' : ''}${isDragging ? ' dragging' : ''}${isOver || isTouchTarget ? ' drag-over' : ''}`}
+              style={
+                touchDrag
+                  ? {
+                      transform: `translateY(${touchOffset(index)}px)`,
+                      transition: touchDrag.from === index ? 'none' : 'transform 0.15s ease',
+                      zIndex: touchDrag.from === index ? 10 : undefined,
+                      position: touchDrag.from === index ? 'relative' : undefined,
+                      boxShadow: touchDrag.from === index ? '0 4px 12px rgba(0,0,0,0.15)' : undefined,
+                    }
+                  : undefined
+              }
               draggable={!isExcluded}
               onDragStart={(e) => handleDragStart(e, index)}
               onDragOver={(e) => handleDragOver(e, index)}
@@ -226,7 +342,7 @@ export function ManageScreen({ app }: Props) {
                   {isFillings && (
                     <select
                       className="category-select"
-                      value={app.state.fillingCategories[name] ?? 'other'}
+                      value={app.state.fillingCategories[name] ?? DEFAULT_CATEGORY}
                       onChange={(e) =>
                         app.setFillingCategory(
                           name,
@@ -235,9 +351,9 @@ export function ManageScreen({ app }: Props) {
                       }
                       aria-label={`${name}のカテゴリ`}
                     >
-                      {CATEGORIES.map((c) => (
-                        <option key={c} value={c}>
-                          {CATEGORY_LABELS[c]}
+                      {app.state.tags.map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.label}
                         </option>
                       ))}
                     </select>

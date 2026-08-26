@@ -1,10 +1,11 @@
-import { useEffect, useReducer, useCallback, useMemo } from 'react'
+import { useEffect, useReducer, useCallback, useMemo, useRef } from 'react'
 import { loadState, saveState } from '../storage/appStorage'
 import {
   MAX_HISTORY,
   MAX_LIST_LEN,
   newHistoryId,
   pruneHistory,
+  DEFAULT_CATEGORY,
   type AppState,
   type LotteryMode,
   type Category,
@@ -20,6 +21,9 @@ type Action =
   | { type: 'TOGGLE_EXCLUDE'; kind: ListKind; name: string }
   | { type: 'MOVE'; kind: ListKind; from: number; to: number }
   | { type: 'SET_CATEGORY'; name: string; category: Category }
+  | { type: 'ADD_TAG'; id: string; label: string }
+  | { type: 'RENAME_TAG'; id: string; label: string }
+  | { type: 'REMOVE_TAG'; id: string }
   | { type: 'SET_MODE'; mode: LotteryMode }
   | { type: 'SET_COUNT'; count: number }
   | { type: 'TOGGLE_SOUND' }
@@ -116,6 +120,40 @@ export function reducer(state: AppState, action: Action): AppState {
         },
       }
     }
+    case 'ADD_TAG': {
+      const label = action.label.trim()
+      if (label.length === 0 || label.length > MAX_LIST_LEN) return state
+      if (state.tags.some((t) => t.id === action.id || t.label === label))
+        return state
+      return { ...state, tags: [...state.tags, { id: action.id, label }] }
+    }
+    case 'RENAME_TAG': {
+      const label = action.label.trim()
+      if (label.length === 0 || label.length > MAX_LIST_LEN) return state
+      // ラベル重複(自分以外)は不可
+      if (state.tags.some((t) => t.id !== action.id && t.label === label))
+        return state
+      if (!state.tags.some((t) => t.id === action.id)) return state
+      return {
+        ...state,
+        tags: state.tags.map((t) =>
+          t.id === action.id ? { ...t, label } : t,
+        ),
+      }
+    }
+    case 'REMOVE_TAG': {
+      // フォールバック先(other)は削除不可・最後の1つは削除不可
+      if (action.id === DEFAULT_CATEGORY) return state
+      if (!state.tags.some((t) => t.id === action.id)) return state
+      if (state.tags.length <= 1) return state
+      const tags = state.tags.filter((t) => t.id !== action.id)
+      // 削除タグを参照していた具は other へ
+      const fillingCategories: Record<string, Category> = {}
+      for (const [name, cat] of Object.entries(state.fillingCategories)) {
+        fillingCategories[name] = cat === action.id ? DEFAULT_CATEGORY : cat
+      }
+      return { ...state, tags, fillingCategories }
+    }
     case 'SET_MODE':
       return { ...state, settings: { ...state.settings, mode: action.mode } }
     case 'SET_COUNT':
@@ -168,6 +206,9 @@ export interface UseAppState {
   setLotteryCount: (count: number) => void
   toggleSound: () => void
   setFillingCategory: (name: string, category: Category) => void
+  addTag: (label: string) => boolean
+  renameTag: (id: string, label: string) => boolean
+  removeTag: (id: string) => boolean
   recordDraw: (results: LotteryResult[]) => void
   toggleFavorite: (id: string) => void
   clearHistory: () => void
@@ -230,6 +271,29 @@ export function useAppState(): UseAppState {
   const setFillingCategory = useCallback((name: string, category: Category) => {
     dispatch({ type: 'SET_CATEGORY', name, category })
   }, [])
+  // タグ操作(idは簡易生成)
+  const tagIdRef = useRef(0)
+  const addTag = useCallback(
+    (label: string) => {
+      const id = `tag-${Date.now()}-${tagIdRef.current++}`
+      const ok =
+        label.trim().length > 0 &&
+        label.trim().length <= MAX_LIST_LEN
+      dispatch({ type: 'ADD_TAG', id, label })
+      return ok
+    },
+    [],
+  )
+  const renameTag = useCallback((id: string, label: string) => {
+    const ok =
+      label.trim().length > 0 && label.trim().length <= MAX_LIST_LEN
+    dispatch({ type: 'RENAME_TAG', id, label })
+    return ok
+  }, [])
+  const removeTag = useCallback((id: string) => {
+    dispatch({ type: 'REMOVE_TAG', id })
+    return true
+  }, [])
   const mkMove = (kind: ListKind) => (from: number, to: number) => {
     dispatch({ type: 'MOVE', kind, from, to })
   }
@@ -264,6 +328,9 @@ export function useAppState(): UseAppState {
     setLotteryCount,
     toggleSound,
     setFillingCategory,
+    addTag,
+    renameTag,
+    removeTag,
     recordDraw,
     toggleFavorite,
     clearHistory,

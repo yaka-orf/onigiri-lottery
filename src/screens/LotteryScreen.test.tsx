@@ -31,6 +31,12 @@ const mk = (overrides: Partial<UseAppState> = {}): UseAppState => ({
     excludedSeasonings: [],
     settings: { mode: 'one', count: 5 },
     soundEnabled: false,
+    tags: [
+      { id: 'meat', label: '肉' },
+      { id: 'fish', label: '魚介' },
+      { id: 'classic', label: '定番' },
+      { id: 'other', label: 'その他' },
+    ],
     fillingCategories: { 鮭: 'fish', 梅: 'classic', おかか: 'classic' },
     history: [],
   },
@@ -49,6 +55,9 @@ const mk = (overrides: Partial<UseAppState> = {}): UseAppState => ({
   setLotteryCount: vi.fn(),
   toggleSound: vi.fn(),
   setFillingCategory: vi.fn(),
+  addTag: vi.fn(() => true),
+  renameTag: vi.fn(() => true),
+  removeTag: vi.fn(() => true),
   recordDraw: vi.fn(),
   toggleFavorite: vi.fn(),
   clearHistory: vi.fn(),
@@ -92,7 +101,7 @@ describe('LotteryScreen', () => {
 
   it('fillings 0件時は「おにる！」disabled + 案内文言', () => {
     const app = mk({
-      state: { fillings: [], seasonings: ['塩'], settings: { mode: 'one', count: 5 }, history: [] } as any,
+      state: { fillings: [], seasonings: ['塩'], settings: { mode: 'one', count: 5 }, history: [], tags: [], fillingCategories: {} } as any,
       effectiveFillings: [],
     })
     render(<LotteryScreen app={app} />)
@@ -154,7 +163,7 @@ describe('LotteryScreen', () => {
     it('2具モードで抽選すると2つの具が「×」区切りで表示され recordDraw も2具で呼ばれる', () => {
       // settings が two の state で直接描画して検証
       const app = mk({
-        state: { fillings: ['鮭', '梅', 'おかか'], seasonings: ['塩', '醤油'], settings: { mode: 'two', count: 5 }, history: [] } as any,
+        state: { fillings: ['鮭', '梅', 'おかか'], seasonings: ['塩', '醤油'], settings: { mode: 'two', count: 5 }, history: [], tags: [], fillingCategories: {} } as any,
       })
       render(<LotteryScreen app={app} />)
       fireEvent.click(findSpin())
@@ -173,7 +182,7 @@ describe('LotteryScreen', () => {
 
     it('具が1件しかない状態で2具モードは「おにる！」disabled', () => {
       const app = mk({
-        state: { fillings: ['鮭'], seasonings: ['塩'], settings: { mode: 'two', count: 5 }, history: [] } as any,
+        state: { fillings: ['鮭'], seasonings: ['塩'], settings: { mode: 'two', count: 5 }, history: [], tags: [], fillingCategories: {} } as any,
         effectiveFillings: ['鮭'],
       })
       render(<LotteryScreen app={app} />)
