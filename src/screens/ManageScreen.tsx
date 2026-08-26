@@ -14,6 +14,8 @@ export function ManageScreen({ app }: Props) {
   const [editValue, setEditValue] = useState('')
 
   const list = app.state[kind]
+  const excluded =
+    kind === 'fillings' ? app.state.excludedFillings : app.state.excludedSeasonings
   const isFillings = kind === 'fillings'
 
   const add = () => {
@@ -50,6 +52,11 @@ export function ManageScreen({ app }: Props) {
     if (ok) setEditing(null)
   }
 
+  const toggleExclude = (name: string) => {
+    if (isFillings) app.toggleExcludeFilling(name)
+    else app.toggleExcludeSeasoning(name)
+  }
+
   return (
     <div className="manage-screen">
       <div className="segment" role="tablist" aria-label="リスト種別">
@@ -73,41 +80,54 @@ export function ManageScreen({ app }: Props) {
         </button>
       </div>
 
+      <p className="exclude-hint">「除外」をタップすると抽選対象から外れます(リストには残ります)</p>
+
       <ul className="item-list">
-        {list.map((name) => (
-          <li key={name} className="item-row">
-            {editing === name ? (
-              <>
-                <input
-                  className="edit-input"
-                  value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
-                  aria-label={`${name}を編集`}
-                />
-                <button type="button" onClick={saveEdit}>
-                  保存
-                </button>
-                <button type="button" onClick={() => setEditing(null)}>
-                  キャンセル
-                </button>
-              </>
-            ) : (
-              <>
-                <span className="item-name">{name}</span>
-                <button type="button" onClick={() => startEdit(name)}>
-                  編集
-                </button>
-                <button
-                  type="button"
-                  onClick={() => remove(name)}
-                  disabled={isFillings && list.length <= 1}
-                >
-                  削除
-                </button>
-              </>
-            )}
-          </li>
-        ))}
+        {list.map((name) => {
+          const isExcluded = excluded.includes(name)
+          return (
+            <li key={name} className={`item-row${isExcluded ? ' excluded' : ''}`}>
+              {editing === name ? (
+                <>
+                  <input
+                    className="edit-input"
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    aria-label={`${name}を編集`}
+                  />
+                  <button type="button" onClick={saveEdit}>
+                    保存
+                  </button>
+                  <button type="button" onClick={() => setEditing(null)}>
+                    キャンセル
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span className="item-name">{name}</span>
+                  <button
+                    type="button"
+                    className="exclude-btn"
+                    onClick={() => toggleExclude(name)}
+                    aria-pressed={isExcluded}
+                  >
+                    {isExcluded ? '解除' : '除外'}
+                  </button>
+                  <button type="button" onClick={() => startEdit(name)}>
+                    編集
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => remove(name)}
+                    disabled={isFillings && list.length <= 1}
+                  >
+                    削除
+                  </button>
+                </>
+              )}
+            </li>
+          )
+        })}
       </ul>
 
       <div className="add-row">

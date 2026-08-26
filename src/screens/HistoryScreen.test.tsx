@@ -7,6 +7,8 @@ import type { AppState } from '../domain/model'
 const setState = (history: AppState['history']): AppState => ({
   fillings: ['鮭'],
   seasonings: ['塩'],
+  excludedFillings: [],
+  excludedSeasonings: [],
   history,
 })
 

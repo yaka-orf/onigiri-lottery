@@ -18,18 +18,29 @@ describe('appStorage', () => {
     const state = {
       fillings: ['鮭', '梅'],
       seasonings: ['塩'],
+      excludedFillings: [],
+      excludedSeasonings: [],
       history: [
         {
+          id: 'test-id-1',
           results: [
             { filling: '鮭', seasoning: '塩' },
             { filling: '梅', seasoning: '塩' },
           ],
           at: 1756200000000,
+          fav: false,
         },
       ],
     }
     expect(saveState(state)).toBe(true)
-    expect(loadState()).toEqual(state)
+    const loaded = loadState()
+    expect(loaded.fillings).toEqual(state.fillings)
+    expect(loaded.seasonings).toEqual(state.seasonings)
+    expect(loaded.excludedFillings).toEqual([])
+    expect(loaded.excludedSeasonings).toEqual([])
+    expect(loaded.history[0].results).toEqual(state.history[0].results)
+    expect(loaded.history[0].at).toBe(state.history[0].at)
+    expect(loaded.history[0].fav).toBe(false)
   })
   it('不正JSONが保存されている場合は初期値にフォールバック', () => {
     localStorage.setItem(STORAGE_KEY, '{{{broken json')
@@ -53,7 +64,13 @@ describe('appStorage', () => {
       throw new Error('quota exceeded')
     })
     expect(
-      saveState({ fillings: ['鮭'], seasonings: ['塩'], history: [] }),
+      saveState({
+        fillings: ['鮭'],
+        seasonings: ['塩'],
+        excludedFillings: [],
+        excludedSeasonings: [],
+        history: [],
+      }),
     ).toBe(false)
   })
 })

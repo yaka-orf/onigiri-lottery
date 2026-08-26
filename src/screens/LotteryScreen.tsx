@@ -10,13 +10,18 @@ interface Props {
 }
 
 type Mode = 'one' | 'two'
+const MIN_COUNT = 1
+const MAX_COUNT = 10
 
 export function LotteryScreen({ app }: Props) {
   const [mode, setMode] = useState<Mode>('one')
+  const [count, setCount] = useState(5)
   const [results, setResults] = useState<LotteryResult[] | LotteryResult2[] | null>(null)
   // 再抽選時もアニメーションを再生し直すため、抽選ごとにキーを変える
   const [spinCount, setSpinCount] = useState(0)
-  const { fillings, seasonings } = app.state
+
+  const fillings = app.effectiveFillings
+  const seasonings = app.effectiveSeasonings
 
   const needsTwo = mode === 'two'
   const canSpin = needsTwo ? fillings.length >= 2 : fillings.length > 0
@@ -24,13 +29,13 @@ export function LotteryScreen({ app }: Props) {
   const spin = () => {
     if (!canSpin) return
     if (needsTwo) {
-      const r = drawSetTwoFillings(fillings, seasonings)
+      const r = drawSetTwoFillings(fillings, seasonings, count)
       if (r === null) return
       setResults(r)
       setSpinCount((c) => c + 1)
       app.recordDraw(r as unknown as LotteryResult[])
     } else {
-      const r = drawSet(fillings, seasonings)
+      const r = drawSet(fillings, seasonings, count)
       if (r === null) return
       setResults(r)
       setSpinCount((c) => c + 1)
@@ -67,14 +72,39 @@ export function LotteryScreen({ app }: Props) {
         </label>
       </fieldset>
 
-      {!canSpin && fillings.length > 0 && (
+      <div className="count-stepper" role="group" aria-label="抽選個数">
+        <button
+          type="button"
+          className="step-btn"
+          onClick={() => setCount((c) => Math.max(MIN_COUNT, c - 1))}
+          disabled={count <= MIN_COUNT}
+          aria-label="個数を減らす"
+        >
+          −
+        </button>
+        <span className="count-value">
+          <span className="count-num">{count}</span>
+          <span className="count-unit">個</span>
+        </span>
+        <button
+          type="button"
+          className="step-btn"
+          onClick={() => setCount((c) => Math.min(MAX_COUNT, c + 1))}
+          disabled={count >= MAX_COUNT}
+          aria-label="個数を増やす"
+        >
+          ＋
+        </button>
+      </div>
+
+      {!canSpin && fillings.length === 0 && (
         <p className="notice" role="alert">
-          具を2つ以上登録してください(リストタブから追加できます)
+          抽選できる具がありません(リストタブで除外を解除するか追加してください)
         </p>
       )}
-      {fillings.length === 0 && (
+      {!canSpin && fillings.length === 1 && needsTwo && (
         <p className="notice" role="alert">
-          具を追加してください(リストタブから追加できます)
+          具2つモードには具を2つ以上有効にしてください
         </p>
       )}
       <button

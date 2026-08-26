@@ -16,14 +16,14 @@ export function HistoryScreen({ app }: Props) {
   const sorted = [...history].reverse()
 
   const clearAll = () => {
-    if (!window.confirm('履歴をすべて削除しますか?')) return
+    if (!window.confirm('お気に入りを含む全履歴を削除しますか?')) return
     app.clearHistory()
   }
 
   return (
     <div className="history-screen">
       {history.length === 0 ? (
-        <p className="notice">まだ履歴はありません。「まわす」で抽選するとここに表示されます。</p>
+        <p className="notice">まだ履歴はありません。「おにる！」で抽選するとここに表示されます。</p>
       ) : (
         <>
           <div className="history-actions">
@@ -33,8 +33,17 @@ export function HistoryScreen({ app }: Props) {
           </div>
           <ul className="history-list">
             {sorted.map((set, i) => (
-              <li key={`${set.at}-${i}`} className="history-set">
+              <li key={set.id} className={`history-set${set.fav ? ' favored' : ''}`}>
                 <div className="history-meta">
+                  <button
+                    type="button"
+                    className={`fav-btn${set.fav ? ' on' : ''}`}
+                    onClick={() => app.toggleFavorite(set.id)}
+                    aria-pressed={set.fav}
+                    aria-label={set.fav ? 'お気に入り解除' : 'お気に入り'}
+                  >
+                    {set.fav ? '★' : '☆'}
+                  </button>
                   <span className="history-no">{sorted.length - i}</span>
                   <time>{fmt(set.at)}</time>
                 </div>

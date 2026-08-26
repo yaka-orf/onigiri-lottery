@@ -27,19 +27,26 @@ const mk = (overrides: Partial<UseAppState> = {}): UseAppState => ({
   state: {
     fillings: ['鮭', '梅', 'おかか'],
     seasonings: ['塩', '醤油'],
+    excludedFillings: [],
+    excludedSeasonings: [],
     history: [],
   },
+  effectiveFillings: ['鮭', '梅', 'おかか'],
+  effectiveSeasonings: ['塩', '醤油'],
   storageAvailable: true,
   addFilling: vi.fn(),
   removeFilling: vi.fn(),
   updateFilling: vi.fn(),
+  toggleExcludeFilling: vi.fn(() => true),
   addSeasoning: vi.fn(),
   removeSeasoning: vi.fn(),
   updateSeasoning: vi.fn(),
+  toggleExcludeSeasoning: vi.fn(() => true),
   recordDraw: vi.fn(),
+  toggleFavorite: vi.fn(),
   clearHistory: vi.fn(),
   ...overrides,
-} as UseAppState)
+} as unknown as UseAppState)
 
 const findSpin = () => screen.getByRole('button', { name: 'おにる！' })
 
@@ -77,10 +84,13 @@ describe('LotteryScreen', () => {
   })
 
   it('fillings 0件時は「おにる！」disabled + 案内文言', () => {
-    const app = mk({ state: { fillings: [], seasonings: ['塩'], history: [] } as any })
+    const app = mk({
+      state: { fillings: [], seasonings: ['塩'], history: [] } as any,
+      effectiveFillings: [],
+    })
     render(<LotteryScreen app={app} />)
     expect(findSpin()).toBeDisabled()
-    expect(screen.getByText(/具を追加してください/)).toBeInTheDocument()
+    expect(screen.getByText(/抽選できる具がありません/)).toBeInTheDocument()
   })
 
   it('再抽選で結果が入れ替わる', async () => {
@@ -141,7 +151,10 @@ describe('LotteryScreen', () => {
     })
 
     it('具が1件しかない状態で2具モードは「おにる！」disabled', () => {
-      const app = mk({ state: { fillings: ['鮭'], seasonings: ['塩'], history: [] } as any })
+      const app = mk({
+        state: { fillings: ['鮭'], seasonings: ['塩'], history: [] } as any,
+        effectiveFillings: ['鮭'],
+      })
       render(<LotteryScreen app={app} />)
       fireEvent.click(screen.getByRole('radio', { name: '具2つ' }))
       expect(findSpin()).toBeDisabled()

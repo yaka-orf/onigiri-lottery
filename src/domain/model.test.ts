@@ -7,18 +7,26 @@ import {
 } from './model'
 
 describe('normalizeState', () => {
-  it('正常データはそのまま通す', () => {
+  it('正常データはそのまま通す(id/favは補完)', () => {
     const s = {
       fillings: ['鮭'],
       seasonings: ['塩'],
       history: [{ results: [{ filling: '鮭', seasoning: '塩' }], at: 1 }],
     }
-    expect(normalizeState(s)).toEqual(s)
+    const r = normalizeState(s)
+    expect(r.fillings).toEqual(['鮭'])
+    expect(r.seasonings).toEqual(['塩'])
+    expect(r.history).toHaveLength(1)
+    expect(r.history[0].results).toEqual([{ filling: '鮭', seasoning: '塩' }])
+    expect(r.history[0].at).toBe(1)
+    expect(r.history[0].fav).toBe(false)
   })
   it('null は初期値にフォールバック', () => {
     expect(normalizeState(null)).toEqual({
       fillings: [...defaultFillings],
       seasonings: [...defaultSeasonings],
+      excludedFillings: [],
+      excludedSeasonings: [],
       history: [],
     })
   })
@@ -26,6 +34,8 @@ describe('normalizeState', () => {
     expect(normalizeState('broken')).toEqual({
       fillings: [...defaultFillings],
       seasonings: [...defaultSeasonings],
+      excludedFillings: [],
+      excludedSeasonings: [],
       history: [],
     })
   })
@@ -47,9 +57,8 @@ describe('normalizeState', () => {
       ],
     }
     const r = normalizeState(s)
-    expect(r.history).toEqual([
-      { results: [{ filling: '鮭', seasoning: '塩' }], at: 1 },
-    ])
+    expect(r.history).toHaveLength(1)
+    expect(r.history[0].at).toBe(1)
   })
   it('history が上限を超えたら古い順に削除され5セット維持', () => {
     const mk = (at: number) => ({

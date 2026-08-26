@@ -183,6 +183,44 @@ button.danger {
   text-align: center;
 }
 
+/* --- 個数ステッパー --- */
+.count-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 0 0 20px;
+}
+
+.step-btn {
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.count-value {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 64px;
+  justify-content: center;
+}
+
+.count-num {
+  font-size: 28px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.count-unit {
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
 .spin-button {
   display: block;
   width: 100%;
@@ -303,6 +341,28 @@ button.danger {
   font-size: 16px;
 }
 
+.item-row.excluded .item-name {
+  color: var(--ink-soft);
+  text-decoration: line-through;
+}
+
+.exclude-btn {
+  color: var(--ink-soft);
+}
+
+.exclude-btn[aria-pressed='true'] {
+  background: var(--bg);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.exclude-hint {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
 .item-row button {
   min-height: 44px;
   padding: 6px 12px;
@@ -360,6 +420,24 @@ button.danger {
   align-items: baseline;
   gap: 10px;
   margin-bottom: 8px;
+}
+
+.fav-btn {
+  min-height: 36px;
+  padding: 2px 8px;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.fav-btn.on {
+  color: #e8a13c;
+}
+
+.history-set.favored {
+  border: 1px solid #ecd9b5;
 }
 
 .history-no {
