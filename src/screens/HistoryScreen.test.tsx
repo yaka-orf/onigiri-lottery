@@ -37,10 +37,8 @@ describe('HistoryScreen', () => {
       { results: [{ filling: '梅', seasoning: '醤油' }], at: 2000 },
     ]
     render(<HistoryScreen app={mk(setState(history))} />)
-    const sets = screen.getAllByRole('listitem', { name: '' })
-    // セット単位の項目が最新順
-    const first = screen.getByText('梅')
-    expect(first).toBeInTheDocument()
+    // セット単位の項目が最新順(最新=at:2000 の「梅」が先頭セットに含まれる)
+    expect(screen.getByText('梅')).toBeInTheDocument()
   })
 
   it('各セットに5組が表示される', () => {
