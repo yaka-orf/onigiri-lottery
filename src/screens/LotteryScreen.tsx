@@ -14,8 +14,9 @@ const MIN_COUNT = 1
 const MAX_COUNT = 10
 
 export function LotteryScreen({ app }: Props) {
-  const [mode, setMode] = useState<Mode>('one')
-  const [count, setCount] = useState(5)
+  // モード・個数は AppState.settings から(永続化される)
+  const mode = app.state.settings.mode
+  const count = app.state.settings.count
   const [results, setResults] = useState<LotteryResult[] | LotteryResult2[] | null>(null)
   // 再抽選時もアニメーションを再生し直すため、抽選ごとにキーを変える
   const [spinCount, setSpinCount] = useState(0)
@@ -56,7 +57,7 @@ export function LotteryScreen({ app }: Props) {
             name="filling-mode"
             value="one"
             checked={mode === 'one'}
-            onChange={() => setMode('one')}
+            onChange={() => app.setLotteryMode('one')}
           />
           <span>具1つ</span>
         </label>
@@ -66,7 +67,7 @@ export function LotteryScreen({ app }: Props) {
             name="filling-mode"
             value="two"
             checked={mode === 'two'}
-            onChange={() => setMode('two')}
+            onChange={() => app.setLotteryMode('two')}
           />
           <span>具2つ</span>
         </label>
@@ -76,7 +77,7 @@ export function LotteryScreen({ app }: Props) {
         <button
           type="button"
           className="step-btn"
-          onClick={() => setCount((c) => Math.max(MIN_COUNT, c - 1))}
+          onClick={() => app.setLotteryCount(Math.max(MIN_COUNT, count - 1))}
           disabled={count <= MIN_COUNT}
           aria-label="個数を減らす"
         >
@@ -89,7 +90,7 @@ export function LotteryScreen({ app }: Props) {
         <button
           type="button"
           className="step-btn"
-          onClick={() => setCount((c) => Math.min(MAX_COUNT, c + 1))}
+          onClick={() => app.setLotteryCount(Math.min(MAX_COUNT, count + 1))}
           disabled={count >= MAX_COUNT}
           aria-label="個数を増やす"
         >

@@ -27,15 +27,17 @@ describe('normalizeState', () => {
       seasonings: [...defaultSeasonings],
       excludedFillings: [],
       excludedSeasonings: [],
+      settings: { mode: 'one', count: 5 },
       history: [],
     })
   })
   it('不正形状(配列等)も初期値にフォールバック', () => {
-    expect(normalizeState('broken')).toEqual({
+    expect(normalizeState(null)).toEqual({
       fillings: [...defaultFillings],
       seasonings: [...defaultSeasonings],
       excludedFillings: [],
       excludedSeasonings: [],
+      settings: { mode: 'one', count: 5 },
       history: [],
     })
   })

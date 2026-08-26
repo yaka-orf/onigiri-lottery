@@ -6,13 +6,21 @@ export interface HistorySet {
   at: number // タイムスタンプ(末尾が最新)
   fav: boolean
 }
+export type LotteryMode = 'one' | 'two'
+export interface LotterySettings {
+  mode: LotteryMode
+  count: number
+}
 export interface AppState {
   fillings: string[]
   seasonings: string[]
   excludedFillings: string[]
   excludedSeasonings: string[]
+  settings: LotterySettings
   history: HistorySet[]
 }
+
+export const defaultSettings: LotterySettings = { mode: 'one', count: 5 }
 
 export const defaultFillings = [
   '鮭',
@@ -53,6 +61,7 @@ export function normalizeState(raw: unknown): AppState {
     seasonings: [...defaultSeasonings],
     excludedFillings: [],
     excludedSeasonings: [],
+    settings: { ...defaultSettings },
     history: [],
   })
   if (typeof raw !== 'object' || raw === null) return fallback()
@@ -107,12 +116,31 @@ export function normalizeState(raw: unknown): AppState {
     }),
   )
 
+  const normalizeSettings = (raw: unknown): LotterySettings => {
+    const mode: LotteryMode =
+      typeof raw === 'object' &&
+      raw !== null &&
+      (raw as Record<string, unknown>).mode === 'two'
+        ? 'two'
+        : 'one'
+    const rawCount =
+      typeof raw === 'object' && raw !== null
+        ? (raw as Record<string, unknown>).count
+        : undefined
+    const count =
+      typeof rawCount === 'number' && Number.isFinite(rawCount)
+        ? Math.min(10, Math.max(1, Math.round(rawCount)))
+        : defaultSettings.count
+    return { mode, count }
+  }
+
   return {
     fillings: fillings.length > 0 ? fillings : [...defaultFillings],
     seasonings:
       seasonings.length > 0 ? seasonings : [...defaultSeasonings],
     excludedFillings,
     excludedSeasonings,
+    settings: normalizeSettings(r.settings),
     history: pruneHistory(history, MAX_HISTORY),
   }
 }

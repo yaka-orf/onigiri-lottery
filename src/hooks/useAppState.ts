@@ -6,6 +6,7 @@ import {
   newHistoryId,
   pruneHistory,
   type AppState,
+  type LotteryMode,
 } from '../domain/model'
 import type { LotteryResult } from '../domain/lottery'
 
@@ -16,6 +17,8 @@ type Action =
   | { type: 'REMOVE'; kind: ListKind; name: string }
   | { type: 'UPDATE'; kind: ListKind; name: string; newName: string }
   | { type: 'TOGGLE_EXCLUDE'; kind: ListKind; name: string }
+  | { type: 'SET_MODE'; mode: LotteryMode }
+  | { type: 'SET_COUNT'; count: number }
   | { type: 'RECORD_DRAW'; results: LotteryResult[] }
   | { type: 'TOGGLE_FAV'; id: string }
   | { type: 'CLEAR_HISTORY' }
@@ -82,6 +85,13 @@ export function reducer(state: AppState, action: Action): AppState {
       if (effective(state, action.kind).length <= 1) return state
       return { ...state, [exKey]: [...excluded, action.name] }
     }
+    case 'SET_MODE':
+      return { ...state, settings: { ...state.settings, mode: action.mode } }
+    case 'SET_COUNT':
+      return {
+        ...state,
+        settings: { ...state.settings, count: Math.min(10, Math.max(1, action.count)) },
+      }
     case 'RECORD_DRAW': {
       const set = {
         id: newHistoryId(),
@@ -118,6 +128,8 @@ export interface UseAppState {
   removeSeasoning: (name: string) => boolean
   updateSeasoning: (name: string, newName: string) => boolean
   toggleExcludeSeasoning: (name: string) => boolean
+  setLotteryMode: (mode: LotteryMode) => void
+  setLotteryCount: (count: number) => void
   recordDraw: (results: LotteryResult[]) => void
   toggleFavorite: (id: string) => void
   clearHistory: () => void
@@ -168,6 +180,12 @@ export function useAppState(): UseAppState {
   const fillingOps = useMemo(() => mkListOps('fillings'), [state])
   const seasoningOps = useMemo(() => mkListOps('seasonings'), [state])
 
+  const setLotteryMode = useCallback((mode: LotteryMode) => {
+    dispatch({ type: 'SET_MODE', mode })
+  }, [])
+  const setLotteryCount = useCallback((count: number) => {
+    dispatch({ type: 'SET_COUNT', count })
+  }, [])
   const recordDraw = useCallback((results: LotteryResult[]) => {
     dispatch({ type: 'RECORD_DRAW', results })
   }, [])
@@ -191,6 +209,8 @@ export function useAppState(): UseAppState {
     removeSeasoning: seasoningOps.remove,
     updateSeasoning: seasoningOps.update,
     toggleExcludeSeasoning: seasoningOps.toggleExclude,
+    setLotteryMode,
+    setLotteryCount,
     recordDraw,
     toggleFavorite,
     clearHistory,

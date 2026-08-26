@@ -29,6 +29,7 @@ const mk = (overrides: Partial<UseAppState> = {}): UseAppState => ({
     seasonings: ['塩', '醤油'],
     excludedFillings: [],
     excludedSeasonings: [],
+    settings: { mode: 'one', count: 5 },
     history: [],
   },
   effectiveFillings: ['鮭', '梅', 'おかか'],
@@ -42,6 +43,8 @@ const mk = (overrides: Partial<UseAppState> = {}): UseAppState => ({
   removeSeasoning: vi.fn(),
   updateSeasoning: vi.fn(),
   toggleExcludeSeasoning: vi.fn(() => true),
+  setLotteryMode: vi.fn(),
+  setLotteryCount: vi.fn(),
   recordDraw: vi.fn(),
   toggleFavorite: vi.fn(),
   clearHistory: vi.fn(),
@@ -85,7 +88,7 @@ describe('LotteryScreen', () => {
 
   it('fillings 0件時は「おにる！」disabled + 案内文言', () => {
     const app = mk({
-      state: { fillings: [], seasonings: ['塩'], history: [] } as any,
+      state: { fillings: [], seasonings: ['塩'], settings: { mode: 'one', count: 5 }, history: [] } as any,
       effectiveFillings: [],
     })
     render(<LotteryScreen app={app} />)
@@ -122,20 +125,34 @@ describe('LotteryScreen', () => {
   })
 
   describe('モード切替', () => {
+    // setLotteryMode mock が state へ反映されるよう設定
+    const mkWithModeSwitch = () => {
+      const app = mk()
+      ;(app.setLotteryMode as ReturnType<typeof vi.fn>).mockImplementation(
+        (mode: 'one' | 'two') => {
+          app.state.settings = { ...app.state.settings, mode }
+        },
+      )
+      return app
+    }
+
     it('初期は1具モード。2具モードへ切替できる', () => {
-      render(<LotteryScreen app={mk()} />)
+      const app = mkWithModeSwitch()
+      render(<LotteryScreen app={app} />)
       const one = screen.getByRole('radio', { name: '具1つ' })
       const two = screen.getByRole('radio', { name: '具2つ' })
       expect(one).toBeChecked()
       expect(two).not.toBeChecked()
       fireEvent.click(two)
-      expect(two).toBeChecked()
+      expect(app.setLotteryMode).toHaveBeenCalledWith('two')
     })
 
     it('2具モードで抽選すると2つの具が「×」区切りで表示され recordDraw も2具で呼ばれる', () => {
-      const app = mk()
+      // settings が two の state で直接描画して検証
+      const app = mk({
+        state: { fillings: ['鮭', '梅', 'おかか'], seasonings: ['塩', '醤油'], settings: { mode: 'two', count: 5 }, history: [] } as any,
+      })
       render(<LotteryScreen app={app} />)
-      fireEvent.click(screen.getByRole('radio', { name: '具2つ' }))
       fireEvent.click(findSpin())
       const items = screen.getAllByRole('listitem')
       expect(items).toHaveLength(5)
@@ -152,13 +169,12 @@ describe('LotteryScreen', () => {
 
     it('具が1件しかない状態で2具モードは「おにる！」disabled', () => {
       const app = mk({
-        state: { fillings: ['鮭'], seasonings: ['塩'], history: [] } as any,
+        state: { fillings: ['鮭'], seasonings: ['塩'], settings: { mode: 'two', count: 5 }, history: [] } as any,
         effectiveFillings: ['鮭'],
       })
       render(<LotteryScreen app={app} />)
-      fireEvent.click(screen.getByRole('radio', { name: '具2つ' }))
       expect(findSpin()).toBeDisabled()
-      expect(screen.getByText(/具を2つ以上/)).toBeInTheDocument()
+      expect(screen.getByText(/具2つモードには具を2つ以上/)).toBeInTheDocument()
     })
   })
 })
