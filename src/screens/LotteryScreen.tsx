@@ -19,6 +19,14 @@ const MIN_COUNT = 1
 const MAX_COUNT = 10
 
 type CategoryFilter = 'all' | Category
+type CreateMode = 'random' | 'manual'
+
+/** 手動選択の1行分 */
+interface ManualRow {
+  filling: string
+  filling2: string // 2具モードのみ
+  seasoning: string
+}
 
 export function LotteryScreen({ app }: Props) {
   // モード・個数は AppState.settings から(永続化される)
@@ -29,6 +37,9 @@ export function LotteryScreen({ app }: Props) {
   const [spinCount, setSpinCount] = useState(0)
   // 共有ボタンのフィードバック表示
   const [shareState, setShareState] = useState<'idle' | 'done'>('idle')
+
+  // ランダム/自分 モード
+  const [createMode, setCreateMode] = useState<CreateMode>('random')
 
   const fillings = app.effectiveFillings
   const seasonings = app.effectiveSeasonings
@@ -44,6 +55,30 @@ export function LotteryScreen({ app }: Props) {
 
   const needsTwo = mode === 'two'
   const canSpin = needsTwo ? filteredFillings.length >= 2 : filteredFillings.length > 0
+
+  // --- 手動モード ---
+  const [manualRows, setManualRows] = useState<ManualRow[]>([])
+  const [manualError, setManualError] = useState('')
+
+  // 手動行を count に同期(不足は先頭要素で補完、超過は切り詰め)
+  const syncManualRows = (): ManualRow[] => {
+    const rows = [...manualRows]
+    const firstFilling = fillings[0] ?? ''
+    const firstSeasoning = seasonings[0] ?? ''
+    while (rows.length < count) {
+      rows.push({ filling: firstFilling, filling2: '', seasoning: firstSeasoning })
+    }
+    return rows.slice(0, count)
+  }
+  const currentManualRows = createMode === 'manual' ? syncManualRows() : manualRows
+
+  const updateManualRow = (i: number, patch: Partial<ManualRow>) => {
+    setManualRows(() => {
+      const next = syncManualRows()
+      next[i] = { ...next[i], ...patch }
+      return next
+    })
+  }
 
   const spin = () => {
     if (!canSpin) return
@@ -63,6 +98,52 @@ export function LotteryScreen({ app }: Props) {
     }
   }
 
+  // 自分でおにる: 手動選択を確定して履歴に記録
+  const confirmManual = () => {
+    const rows = syncManualRows()
+    setManualError('')
+    // バリデーション: 全行選択済み・2具は同一具不可
+    for (const row of rows) {
+      if (!row.filling || !row.seasoning) {
+        setManualError('具と味付けをすべて選択してください')
+        return
+      }
+      if (needsTwo && row.filling2 === '') {
+        setManualError('具を2つとも選択してください')
+        return
+      }
+      if (needsTwo && row.filling === row.filling2) {
+        setManualError('同じ具を2つ選ぶことはできません')
+        return
+      }
+    }
+    const r: LotteryResult[] | LotteryResult2[] = needsTwo
+      ? rows.map((row) => ({
+          filling: row.filling,
+          filling2: row.filling2,
+          seasoning: row.seasoning,
+        }))
+      : rows.map((row) => ({ filling: row.filling, seasoning: row.seasoning }))
+    if (soundEnabled) playSpin()
+    setResults(r)
+    setSpinCount((c) => c + 1)
+    app.recordDraw(r as LotteryResult[])
+  }
+
+  // ランダム結果を手動モードへ引き継いで編集
+  const editResults = () => {
+    if (!results) return
+    const rows: ManualRow[] = results.map((r) => ({
+      filling: r.filling,
+      filling2: 'filling2' in r ? r.filling2 : '',
+      seasoning: r.seasoning,
+    }))
+    setManualRows(rows)
+    setCreateMode('manual')
+    setManualError('')
+    setResults(null)
+  }
+
   const handleShare = async () => {
     if (!results) return
     const outcome = await shareOrCopy(results)
@@ -75,29 +156,74 @@ export function LotteryScreen({ app }: Props) {
   const isTwo = (r: LotteryResult | LotteryResult2): r is LotteryResult2 =>
     'filling2' in r
 
+  const selectOptions = (options: string[], value: string) => (
+    <>
+      {!options.includes(value) && value !== '' && (
+        <option value={value}>{value}</option>
+      )}
+      {options.map((o) => (
+        <option key={o} value={o}>
+          {o}
+        </option>
+      ))}
+    </>
+  )
+
   return (
     <div className="lottery-screen">
-      <div className="category-chips" role="group" aria-label="カテゴリ絞り込み">
-        <button
-          type="button"
-          className={`chip${categoryFilter === 'all' ? ' active' : ''}`}
-          onClick={() => setCategoryFilter('all')}
-          aria-pressed={categoryFilter === 'all'}
-        >
-          全部
-        </button>
-        {app.state.tags.map((t) => (
+      <fieldset className="mode-toggle create-mode-toggle">
+        <legend className="visually-hidden">作成方法</legend>
+        <label>
+          <input
+            type="radio"
+            name="create-mode"
+            value="random"
+            checked={createMode === 'random'}
+            onChange={() => {
+              setCreateMode('random')
+              setManualError('')
+            }}
+          />
+          <span>ランダム</span>
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="create-mode"
+            value="manual"
+            checked={createMode === 'manual'}
+            onChange={() => {
+              setCreateMode('manual')
+              setManualError('')
+            }}
+          />
+          <span>自分</span>
+        </label>
+      </fieldset>
+
+      {createMode === 'random' && (
+        <div className="category-chips" role="group" aria-label="カテゴリ絞り込み">
           <button
-            key={t.id}
             type="button"
-            className={`chip${categoryFilter === t.id ? ' active' : ''}`}
-            onClick={() => setCategoryFilter(t.id)}
-            aria-pressed={categoryFilter === t.id}
+            className={`chip${categoryFilter === 'all' ? ' active' : ''}`}
+            onClick={() => setCategoryFilter('all')}
+            aria-pressed={categoryFilter === 'all'}
           >
-            {t.label}
+            全部
           </button>
-        ))}
-      </div>
+          {app.state.tags.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              className={`chip${categoryFilter === t.id ? ' active' : ''}`}
+              onClick={() => setCategoryFilter(t.id)}
+              aria-pressed={categoryFilter === t.id}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <fieldset className="mode-toggle">
         <legend className="visually-hidden">具の数</legend>
@@ -123,7 +249,7 @@ export function LotteryScreen({ app }: Props) {
         </label>
       </fieldset>
 
-      <div className="count-stepper" role="group" aria-label="抽選個数">
+      <div className="count-stepper" role="group" aria-label="作成個数">
         <button
           type="button"
           className="step-btn"
@@ -148,27 +274,88 @@ export function LotteryScreen({ app }: Props) {
         </button>
       </div>
 
-      {!canSpin && filteredFillings.length === 0 && (
-        <p className="notice" role="alert">
-          抽選できる具がありません(管理タブで除外を解除するか追加してください)
-        </p>
+      {createMode === 'random' ? (
+        <>
+          {!canSpin && filteredFillings.length === 0 && (
+            <p className="notice" role="alert">
+              抽選できる具がありません(管理タブで除外を解除するか追加してください)
+            </p>
+          )}
+          {!canSpin && filteredFillings.length < 2 && needsTwo && filteredFillings.length > 0 && (
+            <p className="notice" role="alert">
+              具2つモードには具を2つ以上有効にしてください
+            </p>
+          )}
+          <button
+            type="button"
+            className="spin-button"
+            onClick={spin}
+            disabled={!canSpin}
+          >
+            ランダムでおにる！
+          </button>
+        </>
+      ) : (
+        <>
+          <ul className="manual-rows" aria-label="手動選択">
+            {currentManualRows.map((row, i) => (
+              <li key={i} className="manual-row">
+                <span className="result-index">{i + 1}</span>
+                <select
+                  className="manual-select"
+                  value={row.filling}
+                  onChange={(e) => updateManualRow(i, { filling: e.target.value })}
+                  aria-label={`${i + 1}個目の具`}
+                >
+                  <option value="">選択してください</option>
+                  {selectOptions(fillings, row.filling)}
+                </select>
+                {needsTwo && (
+                  <>
+                    <span className="manual-x">×</span>
+                    <select
+                      className="manual-select"
+                      value={row.filling2}
+                      onChange={(e) => updateManualRow(i, { filling2: e.target.value })}
+                      aria-label={`${i + 1}個目の具2`}
+                    >
+                      <option value="">選択してください</option>
+                      {selectOptions(fillings, row.filling2)}
+                    </select>
+                  </>
+                )}
+                <span className="manual-x">×</span>
+                <select
+                  className="manual-select"
+                  value={row.seasoning}
+                  onChange={(e) => updateManualRow(i, { seasoning: e.target.value })}
+                  aria-label={`${i + 1}個目の味付け`}
+                >
+                  <option value="">選択してください</option>
+                  {selectOptions(seasonings, row.seasoning)}
+                </select>
+              </li>
+            ))}
+          </ul>
+          {manualError && (
+            <p className="notice" role="alert">
+              {manualError}
+            </p>
+          )}
+          <button
+            type="button"
+            className="spin-button"
+            onClick={confirmManual}
+            disabled={fillings.length === 0}
+          >
+            自分でおにる！
+          </button>
+        </>
       )}
-      {!canSpin && filteredFillings.length < 2 && needsTwo && filteredFillings.length > 0 && (
-        <p className="notice" role="alert">
-          具2つモードには具を2つ以上有効にしてください
-        </p>
-      )}
-      <button
-        type="button"
-        className="spin-button"
-        onClick={spin}
-        disabled={!canSpin}
-      >
-        ランダムでおにる！
-      </button>
+
       {results && (
         <div className="results-wrap">
-          <ol className="results" aria-label="抽選結果" key={spinCount}>
+          <ol className="results" aria-label="作成結果" key={spinCount}>
             {results.map((r, i) => (
               <li
                 key={i}
@@ -185,13 +372,22 @@ export function LotteryScreen({ app }: Props) {
               </li>
             ))}
           </ol>
-          <button
-            type="button"
-            className="share-button"
-            onClick={handleShare}
-          >
-            {shareState === 'done' ? 'コピーしました' : '結果をコピー'}
-          </button>
+          <div className="results-actions">
+            <button
+              type="button"
+              className="share-button"
+              onClick={handleShare}
+            >
+              {shareState === 'done' ? 'コピーしました' : '結果をコピー'}
+            </button>
+            <button
+              type="button"
+              className="share-button edit-button"
+              onClick={editResults}
+            >
+              編集
+            </button>
+          </div>
         </div>
       )}
     </div>

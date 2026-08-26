@@ -336,6 +336,51 @@ button.danger {
   border-top: 2px solid var(--accent);
 }
 
+/* --- 手動選択(自分でおにる) --- */
+.manual-rows {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+.manual-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  background: var(--surface);
+  border-radius: var(--radius);
+}
+
+.manual-select {
+  flex: 1;
+  min-width: 90px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 14px;
+  font-family: inherit;
+  min-height: 40px;
+}
+
+.manual-x {
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.results-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.results-actions .share-button {
+  flex: 1;
+}
+
 /* --- カテゴリ --- */
 .category-chips {
   display: flex;
