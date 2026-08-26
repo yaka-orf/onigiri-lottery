@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { loadState, saveState, STORAGE_KEY } from './appStorage'
-import { defaultFillings, defaultSeasonings } from '../domain/model'
+import { defaultFillings, defaultSeasonings, type AppState } from '../domain/model'
 
 describe('appStorage', () => {
   beforeEach(() => {
@@ -51,7 +51,7 @@ describe('appStorage', () => {
   })
   it('saveState は localStorage に書き込む', () => {
     const spy = vi.spyOn(Storage.prototype, 'setItem')
-    const state = {
+    const state: AppState = {
       fillings: ['鮭'],
       seasonings: ['塩'],
       excludedFillings: [],
@@ -73,8 +73,9 @@ describe('appStorage', () => {
         seasonings: ['塩'],
         excludedFillings: [],
         excludedSeasonings: [],
+        settings: { mode: 'one', count: 5 },
         history: [],
-      }),
+      } satisfies AppState),
     ).toBe(false)
   })
 })
