@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import type { UseAppState } from '../hooks/useAppState'
 
 interface Props {
@@ -12,6 +12,10 @@ export function ManageScreen({ app }: Props) {
   const [input, setInput] = useState('')
   const [editing, setEditing] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
+  // ドラッグ&ドロップ並べ替え状態
+  const [dragIndex, setDragIndex] = useState<number | null>(null)
+  const [overIndex, setOverIndex] = useState<number | null>(null)
+  const dragCounter = useRef(0)
 
   const list = app.state[kind]
   const excluded =
@@ -57,6 +61,75 @@ export function ManageScreen({ app }: Props) {
     else app.toggleExcludeSeasoning(name)
   }
 
+  // --- ドラッグ&ドロップ並べ替え ---
+  const move = (from: number, to: number) => {
+    if (isFillings) app.moveFilling(from, to)
+    else app.moveSeasoning(from, to)
+  }
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDragIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', String(index))
+  }
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setOverIndex(index)
+  }
+
+  const handleDrop = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    if (dragIndex !== null && dragIndex !== index) {
+      move(dragIndex, index)
+    }
+    setDragIndex(null)
+    setOverIndex(null)
+  }
+
+  const handleDragEnd = () => {
+    setDragIndex(null)
+    setOverIndex(null)
+    dragCounter.current = 0
+  }
+
+  // --- タッチ/ポインター並べ替え(iOS Safari は HTML5 DnD 非対応のため) ---
+  const [touchDrag, setTouchDrag] = useState<{
+    from: number
+    currentIndex: number
+    y: number
+  } | null>(null)
+  const rowHeightRef = useRef(0)
+  const listRef = useRef<HTMLUListElement>(null)
+
+  const startTouchDrag = (from: number, y: number) => {
+    const row = listRef.current?.children[from] as HTMLElement | undefined
+    rowHeightRef.current = row ? row.offsetHeight : 48
+    setTouchDrag({ from, currentIndex: from, y })
+  }
+
+  const moveTouchDrag = (y: number) => {
+    setTouchDrag((d) => {
+      if (!d) return d
+      const delta = Math.round((y - d.y) / rowHeightRef.current)
+      const next = Math.max(
+        0,
+        Math.min(list.length - 1, d.from + delta),
+      )
+      return { ...d, currentIndex: next }
+    })
+  }
+
+  const endTouchDrag = () => {
+    setTouchDrag((d) => {
+      if (d && d.currentIndex !== d.from) {
+        move(d.from, d.currentIndex)
+      }
+      return null
+    })
+  }
+
   return (
     <div className="manage-screen">
       <div className="segment" role="tablist" aria-label="リスト種別">
@@ -94,11 +167,22 @@ export function ManageScreen({ app }: Props) {
 
       <p className="exclude-hint">「除外」をタップすると抽選対象から外れます(リストには残ります)</p>
 
-      <ul className="item-list">
-        {list.map((name) => {
+      <ul className="item-list" ref={listRef}>
+        {list.map((name, index) => {
           const isExcluded = excluded.includes(name)
+          const isDragging = dragIndex === index || touchDrag?.from === index
+          const isOver = overIndex === index && dragIndex !== null && dragIndex !== index
+          const isTouchTarget = touchDrag?.currentIndex === index && touchDrag.from !== index
           return (
-            <li key={name} className={`item-row${isExcluded ? ' excluded' : ''}`}>
+            <li
+              key={name}
+              className={`item-row${isExcluded ? ' excluded' : ''}${isDragging ? ' dragging' : ''}${isOver || isTouchTarget ? ' drag-over' : ''}`}
+              draggable={!isExcluded}
+              onDragStart={(e) => handleDragStart(e, index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDrop={(e) => handleDrop(e, index)}
+              onDragEnd={handleDragEnd}
+            >
               {editing === name ? (
                 <>
                   <input
@@ -116,6 +200,27 @@ export function ManageScreen({ app }: Props) {
                 </>
               ) : (
                 <>
+                  <button
+                    type="button"
+                    className="drag-handle"
+                    aria-label={`${name}を並べ替え`}
+                    onPointerDown={(e) => {
+                      if (isExcluded || e.pointerType === 'mouse') return
+                      startTouchDrag(index, e.clientY)
+                    }}
+                    onPointerMove={(e) => {
+                      if (touchDrag?.from === index && e.pointerType !== 'mouse') {
+                        moveTouchDrag(e.clientY)
+                      }
+                    }}
+                    onPointerUp={endTouchDrag}
+                    onPointerCancel={endTouchDrag}
+                    onClick={() => {
+                      // マウス用フォールバック(クリックでは何もしない)
+                    }}
+                  >
+                    ☰
+                  </button>
                   <span className="item-name">{name}</span>
                   <button
                     type="button"

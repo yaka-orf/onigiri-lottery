@@ -20,10 +20,12 @@ const mk = (overrides: Partial<UseAppState> = {}): UseAppState => ({
   removeFilling: vi.fn(() => true),
   updateFilling: vi.fn(() => true),
   toggleExcludeFilling: vi.fn(() => true),
+  moveFilling: vi.fn(),
   addSeasoning: vi.fn(() => true),
   removeSeasoning: vi.fn(() => true),
   updateSeasoning: vi.fn(() => true),
   toggleExcludeSeasoning: vi.fn(() => true),
+  moveSeasoning: vi.fn(),
   setLotteryMode: vi.fn(),
   setLotteryCount: vi.fn(),
   toggleSound: vi.fn(),
@@ -94,6 +96,34 @@ describe('ManageScreen', () => {
       fireEvent.change(input, { target: { value: '味しらべ' } })
       fireEvent.click(screen.getByRole('button', { name: '保存' }))
       expect(app.updateFilling).toHaveBeenCalledWith('鮭', '味しらべ')
+    })
+  })
+
+  describe('並べ替え(ドラッグ&ドロップ)', () => {
+    it('ドラッグハンドルが各行に表示される', () => {
+      render(<ManageScreen app={mk()} />)
+      expect(screen.getByRole('button', { name: '鮭を並べ替え' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: '梅を並べ替え' })).toBeInTheDocument()
+    })
+
+    it('drop で moveFilling(from, to) が呼ばれる', () => {
+      const app = mk()
+      render(<ManageScreen app={app} />)
+      const rows = screen.getAllByRole('listitem')
+      // 0行目をdrag開始 → 1行目にdrop
+      fireEvent.dragStart(rows[0], { dataTransfer: { setData: vi.fn(), effectAllowed: 'move' } })
+      fireEvent.dragOver(rows[1], { dataTransfer: { dropEffect: 'move' } })
+      fireEvent.drop(rows[1], { dataTransfer: { getData: () => '0' } })
+      expect(app.moveFilling).toHaveBeenCalledWith(0, 1)
+    })
+
+    it('同一行への drop では move しない', () => {
+      const app = mk()
+      render(<ManageScreen app={app} />)
+      const rows = screen.getAllByRole('listitem')
+      fireEvent.dragStart(rows[0], { dataTransfer: { setData: vi.fn(), effectAllowed: 'move' } })
+      fireEvent.drop(rows[0], { dataTransfer: { getData: () => '0' } })
+      expect(app.moveFilling).not.toHaveBeenCalled()
     })
   })
 })

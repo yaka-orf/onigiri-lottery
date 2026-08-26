@@ -307,6 +307,35 @@ button.danger {
   opacity: 0.55;
 }
 
+/* --- ドラッグ&ドロップ並べ替え --- */
+.drag-handle {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted-ink, #8aa8b5);
+  font-size: 16px;
+  cursor: grab;
+  touch-action: none; /* ポインタードラッグ中のスクロールを防ぐ */
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.item-row.dragging {
+  opacity: 0.45;
+}
+
+.item-row.drag-over {
+  border-top: 2px solid var(--accent);
+}
+
 @keyframes rise {
   from {
     opacity: 0;
