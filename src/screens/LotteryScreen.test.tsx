@@ -31,6 +31,7 @@ const mk = (overrides: Partial<UseAppState> = {}): UseAppState => ({
     excludedSeasonings: [],
     settings: { mode: 'one', count: 5 },
     soundEnabled: false,
+    fillingCategories: { 鮭: 'fish', 梅: 'classic', おかか: 'classic' },
     history: [],
   },
   effectiveFillings: ['鮭', '梅', 'おかか'],

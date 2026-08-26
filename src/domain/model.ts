@@ -11,6 +11,30 @@ export interface LotterySettings {
   mode: LotteryMode
   count: number
 }
+
+// --- 具カテゴリ ---
+export type Category = 'meat' | 'fish' | 'classic' | 'other'
+export const CATEGORIES: readonly Category[] = ['meat', 'fish', 'classic', 'other'] as const
+export const CATEGORY_LABELS: Record<Category, string> = {
+  meat: '肉',
+  fish: '魚介',
+  classic: '定番',
+  other: 'その他',
+}
+export const DEFAULT_CATEGORY: Category = 'other'
+
+/** デフォルト8具のカテゴリ初期割当 */
+export const defaultFillingCategories: Record<string, Category> = {
+  鮭: 'fish',
+  梅: 'classic',
+  おかか: 'classic',
+  昆布: 'classic',
+  ツナマヨ: 'fish',
+  明太子: 'fish',
+  焼きたらこ: 'fish',
+  たまご: 'other',
+}
+
 export interface AppState {
   fillings: string[]
   seasonings: string[]
@@ -18,6 +42,7 @@ export interface AppState {
   excludedSeasonings: string[]
   settings: LotterySettings
   soundEnabled: boolean
+  fillingCategories: Record<string, Category>
   history: HistorySet[]
 }
 
@@ -64,6 +89,7 @@ export function normalizeState(raw: unknown): AppState {
     excludedSeasonings: [],
     settings: { ...defaultSettings },
     soundEnabled: true,
+    fillingCategories: { ...defaultFillingCategories },
     history: [],
   })
   if (typeof raw !== 'object' || raw === null) return fallback()
@@ -136,14 +162,53 @@ export function normalizeState(raw: unknown): AppState {
     return { mode, count }
   }
 
+  // カテゴリ正規化: 未知の具名は除去、欠損は other 補完、不正値は other 置換
+  const validFinalFillings =
+    fillings.length > 0 ? fillings : [...defaultFillings]
+  const normalizeCategories = (
+    raw: unknown,
+    names: string[],
+  ): Record<string, Category> => {
+    const source =
+      typeof raw === 'object' && raw !== null
+        ? (raw as Record<string, unknown>)
+        : {}
+    const isCategory = (x: unknown): x is Category =>
+      typeof x === 'string' && (CATEGORIES as readonly string[]).includes(x)
+    const out: Record<string, Category> = {}
+    for (const name of names) {
+      const v = source[name]
+      out[name] = isCategory(v) ? v : DEFAULT_CATEGORY
+    }
+    return out
+  }
+  const baseCategories = normalizeCategories(
+    r.fillingCategories,
+    validFinalFillings,
+  )
+  // 既存値がない具はデフォルト割当から補完(新規追加以外の旧データ移行)
+  const mergedCategories: Record<string, Category> = { ...baseCategories }
+  for (const [name, cat] of Object.entries(defaultFillingCategories)) {
+    if (mergedCategories[name] === DEFAULT_CATEGORY && cat !== DEFAULT_CATEGORY) {
+      // 保存データに明示的に other が設定されていた可能性は残すが、
+      // デフォルト割当が other 以外で保存値が欠損していたケースのみ補完
+      const hadExplicit =
+        typeof r.fillingCategories === 'object' &&
+        r.fillingCategories !== null &&
+        (r.fillingCategories as Record<string, unknown>)[name] !== undefined
+      if (!hadExplicit) mergedCategories[name] = cat
+    }
+  }
+
   return {
-    fillings: fillings.length > 0 ? fillings : [...defaultFillings],
+    fillings: validFinalFillings,
     seasonings:
       seasonings.length > 0 ? seasonings : [...defaultSeasonings],
     excludedFillings,
     excludedSeasonings,
     settings: normalizeSettings(r.settings),
     soundEnabled: r.soundEnabled !== false,
+    fillingCategories: mergedCategories,
     history: pruneHistory(history, MAX_HISTORY),
   }
 }

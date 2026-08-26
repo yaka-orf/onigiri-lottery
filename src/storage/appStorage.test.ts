@@ -22,6 +22,7 @@ describe('appStorage', () => {
       excludedSeasonings: [],
       settings: { mode: 'one', count: 5 },
       soundEnabled: true,
+      fillingCategories: { 鮭: 'fish', 梅: 'classic' },
       history: [
         {
           id: 'test-id-1',
@@ -59,6 +60,7 @@ describe('appStorage', () => {
       excludedSeasonings: [],
       settings: { mode: 'one', count: 5 },
       soundEnabled: true,
+      fillingCategories: { 鮭: 'fish', 梅: 'classic' },
       history: [],
     }
     expect(saveState(state)).toBe(true)
@@ -77,6 +79,7 @@ describe('appStorage', () => {
         excludedSeasonings: [],
         settings: { mode: 'one', count: 5 },
         soundEnabled: true,
+        fillingCategories: { 鮭: 'fish' },
         history: [],
       } satisfies AppState),
     ).toBe(false)

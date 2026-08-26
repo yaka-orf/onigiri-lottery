@@ -3,6 +3,7 @@ import {
   normalizeState,
   defaultFillings,
   defaultSeasonings,
+  defaultFillingCategories,
   MAX_HISTORY,
 } from './model'
 
@@ -29,6 +30,7 @@ describe('normalizeState', () => {
       excludedSeasonings: [],
       settings: { mode: 'one', count: 5 },
       soundEnabled: true,
+      fillingCategories: { ...defaultFillingCategories },
       history: [],
     })
   })
@@ -40,6 +42,7 @@ describe('normalizeState', () => {
       excludedSeasonings: [],
       settings: { mode: 'one', count: 5 },
       soundEnabled: true,
+      fillingCategories: { ...defaultFillingCategories },
       history: [],
     })
   })

@@ -11,6 +11,7 @@ const setState = (history: AppState['history']): AppState => ({
   excludedSeasonings: [],
   settings: { mode: 'one', count: 5 },
   soundEnabled: true,
+  fillingCategories: { 鮭: 'fish' },
   history,
 })
 

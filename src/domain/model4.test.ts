@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { normalizeState, defaultFillings, defaultSeasonings } from './model'
+import { normalizeState, defaultFillings, defaultSeasonings, defaultFillingCategories } from './model'
 import type { AppState } from './model'
 
 describe('soundEnabled 正規化', () => {
@@ -42,6 +42,7 @@ describe('soundEnabled 正規化', () => {
       excludedSeasonings: [],
       settings: { mode: 'one', count: 5 },
       soundEnabled: false,
+      fillingCategories: { ...defaultFillingCategories },
       history: [],
     }
     // AppState をそのまま正規化に通しても soundEnabled が保たれる
