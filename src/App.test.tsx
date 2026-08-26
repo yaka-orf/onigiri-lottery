@@ -46,7 +46,7 @@ describe('App', () => {
     fireEvent.change(screen.getByPlaceholderText(/新しい具を追加/), {
       target: { value: '味しらべ' },
     })
-    fireEvent.click(screen.getAllByRole('button', { name: '追加' })[1])
+    fireEvent.click(screen.getByRole('button', { name: '追加' }))
     const saved = JSON.parse(localStorage.getItem('onigiri-lottery')!)
     expect(saved.fillings).toContain('味しらべ')
   })

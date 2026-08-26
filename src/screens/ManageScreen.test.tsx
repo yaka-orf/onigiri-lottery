@@ -69,13 +69,13 @@ describe('ManageScreen', () => {
       fireEvent.change(screen.getByPlaceholderText('新しい具を追加'), {
         target: { value: '味しらべ' },
       })
-      fireEvent.click(screen.getAllByRole('button', { name: '追加' })[1])
+      fireEvent.click(screen.getByRole('button', { name: '追加' }))
       expect(app.addFilling).toHaveBeenCalledWith('味しらべ')
     })
     it('空入力では呼ばれない', () => {
       const app = mk()
       render(<ManageScreen app={app} />)
-      fireEvent.click(screen.getAllByRole('button', { name: '追加' })[1])
+      fireEvent.click(screen.getByRole('button', { name: '追加' }))
       expect(app.addFilling).not.toHaveBeenCalled()
     })
   })
@@ -108,6 +108,42 @@ describe('ManageScreen', () => {
       fireEvent.change(input, { target: { value: '味しらべ' } })
       fireEvent.click(screen.getByRole('button', { name: '保存' }))
       expect(app.updateFilling).toHaveBeenCalledWith('鮭', '味しらべ')
+    })
+  })
+
+
+  describe('タグジャンル', () => {
+    it('タグタブ切替でタグ一覧が表示される', () => {
+      render(<ManageScreen app={mk()} />)
+      fireEvent.click(screen.getByRole('tab', { name: 'タグ' }))
+      expect(screen.getByText('肉')).toBeInTheDocument()
+      expect(screen.getByText('魚介')).toBeInTheDocument()
+      // 具は表示されない
+      expect(screen.queryByText('鮭')).not.toBeInTheDocument()
+    })
+
+    it('タグ追加で addTag が呼ばれる', () => {
+      const app = mk()
+      render(<ManageScreen app={app} />)
+      fireEvent.click(screen.getByRole('tab', { name: 'タグ' }))
+      fireEvent.change(screen.getByPlaceholderText('新しいタグを追加'), {
+        target: { value: '自家製' },
+      })
+      fireEvent.click(screen.getByRole('button', { name: '追加' }))
+      expect(app.addTag).toHaveBeenCalledWith('自家製')
+    })
+
+    it('既定タグ(その他)は削除ボタンが無効', () => {
+      render(<ManageScreen app={mk()} />)
+      fireEvent.click(screen.getByRole('tab', { name: 'タグ' }))
+      const deleteBtn = screen.getByRole('button', { name: 'その他を削除' })
+      expect(deleteBtn).toBeDisabled()
+    })
+
+    it('タグ行にドラッグハンドルは表示されない', () => {
+      render(<ManageScreen app={mk()} />)
+      fireEvent.click(screen.getByRole('tab', { name: 'タグ' }))
+      expect(screen.queryByRole('button', { name: '肉を並べ替え' })).not.toBeInTheDocument()
     })
   })
 
