@@ -9,6 +9,7 @@ const setState = (history: AppState['history']): AppState => ({
   seasonings: ['塩'],
   excludedFillings: [],
   excludedSeasonings: [],
+  settings: { mode: 'one', count: 5 },
   history,
 })
 

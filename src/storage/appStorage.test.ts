@@ -20,6 +20,7 @@ describe('appStorage', () => {
       seasonings: ['塩'],
       excludedFillings: [],
       excludedSeasonings: [],
+      settings: { mode: 'one', count: 5 },
       history: [
         {
           id: 'test-id-1',
@@ -55,6 +56,7 @@ describe('appStorage', () => {
       seasonings: ['塩'],
       excludedFillings: [],
       excludedSeasonings: [],
+      settings: { mode: 'one', count: 5 },
       history: [],
     }
     expect(saveState(state)).toBe(true)

@@ -9,7 +9,6 @@ interface Props {
   app: UseAppState
 }
 
-type Mode = 'one' | 'two'
 const MIN_COUNT = 1
 const MAX_COUNT = 10
 
