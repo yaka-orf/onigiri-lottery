@@ -164,7 +164,7 @@ export function LotteryScreen({ app }: Props) {
         onClick={spin}
         disabled={!canSpin}
       >
-        おにる！
+        ランダムでおにる！
       </button>
       {results && (
         <div className="results-wrap">

@@ -7,7 +7,7 @@ import { HistoryScreen } from './screens/HistoryScreen'
 type TabId = 'lottery' | 'manage' | 'history'
 
 const TABS: { id: TabId; label: string }[] = [
-  { id: 'lottery', label: '抽選' },
+  { id: 'lottery', label: '作成' },
   { id: 'manage', label: '管理' },
   { id: 'history', label: '履歴' },
 ]

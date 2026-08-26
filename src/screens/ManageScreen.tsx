@@ -207,7 +207,7 @@ export function ManageScreen({ app }: Props) {
           aria-pressed={!app.state.soundEnabled}
           aria-label={app.state.soundEnabled ? 'サウンドをオフにする' : 'サウンドをオンにする'}
         >
-          {app.state.soundEnabled ? '🔊 サウンド ON' : '🔇 サウンド OFF'}
+          {app.state.soundEnabled ? 'サウンド ON' : 'サウンド OFF'}
         </button>
       </div>
 
