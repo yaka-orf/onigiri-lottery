@@ -56,7 +56,7 @@ describe('HistoryScreen', () => {
 
   it('全削除: 確認 OK で clearHistory 呼び出し', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true)
-    const app = mk(setState([{ results: [{ filling: '鮭', seasoning: '塩' }], at: 1 }]))
+    const app = mk(setState([{ id: 'x', results: [{ filling: '鮭', seasoning: '塩' }], at: 1, fav: false }]))
     render(<HistoryScreen app={app} />)
     fireEvent.click(screen.getByRole('button', { name: '全削除' }))
     expect(app.clearHistory).toHaveBeenCalledTimes(1)
@@ -64,7 +64,7 @@ describe('HistoryScreen', () => {
 
   it('全削除: キャンセルでは呼ばれない', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(false)
-    const app = mk(setState([{ results: [{ filling: '鮭', seasoning: '塩' }], at: 1 }]))
+    const app = mk(setState([{ id: 'x', results: [{ filling: '鮭', seasoning: '塩' }], at: 1, fav: false }]))
     render(<HistoryScreen app={app} />)
     fireEvent.click(screen.getByRole('button', { name: '全削除' }))
     expect(app.clearHistory).not.toHaveBeenCalled()
