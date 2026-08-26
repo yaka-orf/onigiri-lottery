@@ -51,6 +51,41 @@ body {
   overflow-y: auto;
 }
 
+/* タブ切替のページングアニメーション(key=tab で再マウント) */
+.page {
+  animation: page-in 0.18s ease-out;
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page {
+    animation: none;
+  }
+}
+
+/* スクリーンリーダー専用(モード切替のlegend等) */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* --- 警告 --- */
 .storage-warning {
   margin: 0;
@@ -94,11 +129,48 @@ button.danger {
 }
 
 /* --- 抽選画面 --- */
-.lottery-screen .hint {
-  margin: 8px 0 20px;
-  color: var(--ink-soft);
+.mode-toggle {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 0;
+  border: none;
+}
+
+.mode-toggle label {
+  flex: 1;
+  display: flex;
+}
+
+.mode-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mode-toggle span {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
   font-size: 14px;
-  text-align: center;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.mode-toggle input:checked + span {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.mode-toggle input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .notice {

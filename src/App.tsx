@@ -24,9 +24,11 @@ export function App() {
         </p>
       )}
       <main className="content">
-        {tab === 'lottery' && <LotteryScreen app={app} />}
-        {tab === 'manage' && <ManageScreen app={app} />}
-        {tab === 'history' && <HistoryScreen app={app} />}
+        <div key={tab} className="page">
+          {tab === 'lottery' && <LotteryScreen app={app} />}
+          {tab === 'manage' && <ManageScreen app={app} />}
+          {tab === 'history' && <HistoryScreen app={app} />}
+        </div>
       </main>
       <nav className="tabbar" role="tablist" aria-label="画面切替">
         {TABS.map((t) => (

@@ -39,14 +39,17 @@ export function HistoryScreen({ app }: Props) {
                   <time>{fmt(set.at)}</time>
                 </div>
                 <ol className="history-results">
-                  {set.results.map((r, j) => (
-                    <li key={j}>
-                      {r.filling}
-                      {r.seasoning !== '' && (
-                        <span className="history-seasoning"> ×{r.seasoning}</span>
-                      )}
-                    </li>
-                  ))}
+                  {set.results.map((r, j) => {
+                    const pair = 'filling2' in r ? `${r.filling} ×${(r as { filling2: string }).filling2}` : r.filling
+                    return (
+                      <li key={j}>
+                        {pair}
+                        {r.seasoning !== '' && (
+                          <span className="history-seasoning"> ×{r.seasoning}</span>
+                        )}
+                      </li>
+                    )
+                  })}
                 </ol>
               </li>
             ))}
