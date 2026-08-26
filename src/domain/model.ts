@@ -41,12 +41,15 @@ export function normalizeState(raw: unknown): AppState {
     x !== null &&
     isStr((x as Record<string, unknown>).filling) &&
     typeof (x as Record<string, unknown>).seasoning === 'string'
-  const isSet = (x: unknown): x is HistorySet =>
-    typeof x === 'object' &&
-    x !== null &&
-    Array.isArray((x as Record<string, unknown>).results) &&
-    (x as Record<string, unknown>).results.every(isPair) &&
-    typeof (x as Record<string, unknown>).at === 'number'
+  const isSet = (x: unknown): x is HistorySet => {
+    if (typeof x !== 'object' || x === null) return false
+    const o = x as Record<string, unknown>
+    return (
+      Array.isArray(o.results) &&
+      o.results.every(isPair) &&
+      typeof o.at === 'number'
+    )
+  }
 
   const r = raw as Record<string, unknown>
   const fillings = Array.isArray(r.fillings) ? r.fillings.filter(isStr) : []
