@@ -10,6 +10,7 @@ const setState = (history: AppState['history']): AppState => ({
   excludedFillings: [],
   excludedSeasonings: [],
   settings: { mode: 'one', count: 5 },
+  soundEnabled: true,
   history,
 })
 

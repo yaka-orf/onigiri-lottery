@@ -28,6 +28,7 @@ describe('normalizeState', () => {
       excludedFillings: [],
       excludedSeasonings: [],
       settings: { mode: 'one', count: 5 },
+      soundEnabled: true,
       history: [],
     })
   })
@@ -38,6 +39,7 @@ describe('normalizeState', () => {
       excludedFillings: [],
       excludedSeasonings: [],
       settings: { mode: 'one', count: 5 },
+      soundEnabled: true,
       history: [],
     })
   })

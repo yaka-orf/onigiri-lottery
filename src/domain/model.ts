@@ -17,6 +17,7 @@ export interface AppState {
   excludedFillings: string[]
   excludedSeasonings: string[]
   settings: LotterySettings
+  soundEnabled: boolean
   history: HistorySet[]
 }
 
@@ -62,6 +63,7 @@ export function normalizeState(raw: unknown): AppState {
     excludedFillings: [],
     excludedSeasonings: [],
     settings: { ...defaultSettings },
+    soundEnabled: true,
     history: [],
   })
   if (typeof raw !== 'object' || raw === null) return fallback()
@@ -141,6 +143,7 @@ export function normalizeState(raw: unknown): AppState {
     excludedFillings,
     excludedSeasonings,
     settings: normalizeSettings(r.settings),
+    soundEnabled: r.soundEnabled !== false,
     history: pruneHistory(history, MAX_HISTORY),
   }
 }

@@ -15,12 +15,13 @@ describe('appStorage', () => {
     expect(s.history).toEqual([])
   })
   it('保存→読込のラウンドトリップ', () => {
-    const state = {
+    const state: AppState = {
       fillings: ['鮭', '梅'],
       seasonings: ['塩'],
       excludedFillings: [],
       excludedSeasonings: [],
-      settings: { mode: 'one' as const, count: 5 },
+      settings: { mode: 'one', count: 5 },
+      soundEnabled: true,
       history: [
         {
           id: 'test-id-1',
@@ -57,6 +58,7 @@ describe('appStorage', () => {
       excludedFillings: [],
       excludedSeasonings: [],
       settings: { mode: 'one', count: 5 },
+      soundEnabled: true,
       history: [],
     }
     expect(saveState(state)).toBe(true)
@@ -74,6 +76,7 @@ describe('appStorage', () => {
         excludedFillings: [],
         excludedSeasonings: [],
         settings: { mode: 'one', count: 5 },
+        soundEnabled: true,
         history: [],
       } satisfies AppState),
     ).toBe(false)
