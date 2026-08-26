@@ -1,0 +1,59 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { loadState, saveState, STORAGE_KEY } from './appStorage'
+import { defaultFillings, defaultSeasonings } from '../domain/model'
+
+describe('appStorage', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    vi.restoreAllMocks()
+  })
+
+  it('空localStorageから読み込むと初期値を返す', () => {
+    const s = loadState()
+    expect(s.fillings).toEqual([...defaultFillings])
+    expect(s.seasonings).toEqual([...defaultSeasonings])
+    expect(s.history).toEqual([])
+  })
+  it('保存→読込のラウンドトリップ', () => {
+    const state = {
+      fillings: ['鮭', '梅'],
+      seasonings: ['塩'],
+      history: [
+        {
+          results: [
+            { filling: '鮭', seasoning: '塩' },
+            { filling: '梅', seasoning: '塩' },
+          ],
+          at: 1756200000000,
+        },
+      ],
+    }
+    expect(saveState(state)).toBe(true)
+    expect(loadState()).toEqual(state)
+  })
+  it('不正JSONが保存されている場合は初期値にフォールバック', () => {
+    localStorage.setItem(STORAGE_KEY, '{{{broken json')
+    const s = loadState()
+    expect(s.fillings).toEqual([...defaultFillings])
+    expect(s.history).toEqual([])
+  })
+  it('saveState は localStorage に書き込む', () => {
+    const spy = vi.spyOn(Storage.prototype, 'setItem')
+    const state = {
+      fillings: ['鮭'],
+      seasonings: ['塩'],
+      history: [],
+    }
+    expect(saveState(state)).toBe(true)
+    expect(spy).toHaveBeenCalledWith(STORAGE_KEY, JSON.stringify(state))
+    expect(localStorage.getItem(STORAGE_KEY)).toBe(JSON.stringify(state))
+  })
+  it('書き込み失敗時は false を返す', () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('quota exceeded')
+    })
+    expect(
+      saveState({ fillings: ['鮭'], seasonings: ['塩'], history: [] }),
+    ).toBe(false)
+  })
+})
