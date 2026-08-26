@@ -30,6 +30,7 @@ const mk = (overrides: Partial<UseAppState> = {}): UseAppState => ({
   setLotteryMode: vi.fn(),
   setLotteryCount: vi.fn(),
   toggleSound: vi.fn(),
+  setFillingCategory: vi.fn(),
   recordDraw: vi.fn(),
   toggleFavorite: vi.fn(),
   clearHistory: vi.fn(),

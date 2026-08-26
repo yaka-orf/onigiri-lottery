@@ -7,6 +7,7 @@ import {
   pruneHistory,
   type AppState,
   type LotteryMode,
+  type Category,
 } from '../domain/model'
 import type { LotteryResult } from '../domain/lottery'
 
@@ -18,6 +19,7 @@ type Action =
   | { type: 'UPDATE'; kind: ListKind; name: string; newName: string }
   | { type: 'TOGGLE_EXCLUDE'; kind: ListKind; name: string }
   | { type: 'MOVE'; kind: ListKind; from: number; to: number }
+  | { type: 'SET_CATEGORY'; name: string; category: Category }
   | { type: 'SET_MODE'; mode: LotteryMode }
   | { type: 'SET_COUNT'; count: number }
   | { type: 'TOGGLE_SOUND' }
@@ -104,6 +106,16 @@ export function reducer(state: AppState, action: Action): AppState {
       next.splice(to, 0, moved)
       return { ...state, [action.kind]: next }
     }
+    case 'SET_CATEGORY': {
+      if (!state.fillings.includes(action.name)) return state
+      return {
+        ...state,
+        fillingCategories: {
+          ...state.fillingCategories,
+          [action.name]: action.category,
+        },
+      }
+    }
     case 'SET_MODE':
       return { ...state, settings: { ...state.settings, mode: action.mode } }
     case 'SET_COUNT':
@@ -154,6 +166,7 @@ export interface UseAppState {
   setLotteryMode: (mode: LotteryMode) => void
   setLotteryCount: (count: number) => void
   toggleSound: () => void
+  setFillingCategory: (name: string, category: Category) => void
   recordDraw: (results: LotteryResult[]) => void
   toggleFavorite: (id: string) => void
   clearHistory: () => void
@@ -213,6 +226,9 @@ export function useAppState(): UseAppState {
   const toggleSound = useCallback(() => {
     dispatch({ type: 'TOGGLE_SOUND' })
   }, [])
+  const setFillingCategory = useCallback((name: string, category: Category) => {
+    dispatch({ type: 'SET_CATEGORY', name, category })
+  }, [])
   const mkMove = (kind: ListKind) => (from: number, to: number) => {
     dispatch({ type: 'MOVE', kind, from, to })
   }
@@ -246,6 +262,7 @@ export function useAppState(): UseAppState {
     setLotteryMode,
     setLotteryCount,
     toggleSound,
+    setFillingCategory,
     recordDraw,
     toggleFavorite,
     clearHistory,

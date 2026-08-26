@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import type { UseAppState } from '../hooks/useAppState'
+import { CATEGORIES, CATEGORY_LABELS, type Category } from '../domain/model'
 
 interface Props {
   app: UseAppState
@@ -222,6 +223,25 @@ export function ManageScreen({ app }: Props) {
                     ☰
                   </button>
                   <span className="item-name">{name}</span>
+                  {isFillings && (
+                    <select
+                      className="category-select"
+                      value={app.state.fillingCategories[name] ?? 'other'}
+                      onChange={(e) =>
+                        app.setFillingCategory(
+                          name,
+                          e.target.value as Category,
+                        )
+                      }
+                      aria-label={`${name}のカテゴリ`}
+                    >
+                      {CATEGORIES.map((c) => (
+                        <option key={c} value={c}>
+                          {CATEGORY_LABELS[c]}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                   <button
                     type="button"
                     className="exclude-btn"

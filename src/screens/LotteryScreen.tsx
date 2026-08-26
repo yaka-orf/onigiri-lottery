@@ -6,6 +6,11 @@ import type { LotteryResult2 } from '../domain/lottery2'
 import type { UseAppState } from '../hooks/useAppState'
 import { shareOrCopy } from '../lib/share'
 import { playSpin, playStop } from '../lib/sound'
+import {
+  CATEGORIES,
+  CATEGORY_LABELS,
+  type Category,
+} from '../domain/model'
 
 interface Props {
   app: UseAppState
@@ -13,6 +18,8 @@ interface Props {
 
 const MIN_COUNT = 1
 const MAX_COUNT = 10
+
+type CategoryFilter = 'all' | Category
 
 export function LotteryScreen({ app }: Props) {
   // モード・個数は AppState.settings から(永続化される)
@@ -27,21 +34,29 @@ export function LotteryScreen({ app }: Props) {
   const fillings = app.effectiveFillings
   const seasonings = app.effectiveSeasonings
   const soundEnabled = app.state.soundEnabled
+  const categories = app.state.fillingCategories
+
+  // カテゴリ絞り込み('all'=全カテゴリ)
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all')
+  const filteredFillings =
+    categoryFilter === 'all'
+      ? fillings
+      : fillings.filter((f) => (categories[f] ?? 'other') === categoryFilter)
 
   const needsTwo = mode === 'two'
-  const canSpin = needsTwo ? fillings.length >= 2 : fillings.length > 0
+  const canSpin = needsTwo ? filteredFillings.length >= 2 : filteredFillings.length > 0
 
   const spin = () => {
     if (!canSpin) return
     if (soundEnabled) playSpin()
     if (needsTwo) {
-      const r = drawSetTwoFillings(fillings, seasonings, count)
+      const r = drawSetTwoFillings(filteredFillings, seasonings, count)
       if (r === null) return
       setResults(r)
       setSpinCount((c) => c + 1)
       app.recordDraw(r as unknown as LotteryResult[])
     } else {
-      const r = drawSet(fillings, seasonings, count)
+      const r = drawSet(filteredFillings, seasonings, count)
       if (r === null) return
       setResults(r)
       setSpinCount((c) => c + 1)
@@ -67,6 +82,28 @@ export function LotteryScreen({ app }: Props) {
 
   return (
     <div className="lottery-screen">
+      <div className="category-chips" role="group" aria-label="カテゴリ絞り込み">
+        <button
+          type="button"
+          className={`chip${categoryFilter === 'all' ? ' active' : ''}`}
+          onClick={() => setCategoryFilter('all')}
+          aria-pressed={categoryFilter === 'all'}
+        >
+          全部
+        </button>
+        {CATEGORIES.map((c) => (
+          <button
+            key={c}
+            type="button"
+            className={`chip${categoryFilter === c ? ' active' : ''}`}
+            onClick={() => setCategoryFilter(c)}
+            aria-pressed={categoryFilter === c}
+          >
+            {CATEGORY_LABELS[c]}
+          </button>
+        ))}
+      </div>
+
       <fieldset className="mode-toggle">
         <legend className="visually-hidden">具の数</legend>
         <label>
@@ -116,12 +153,12 @@ export function LotteryScreen({ app }: Props) {
         </button>
       </div>
 
-      {!canSpin && fillings.length === 0 && (
+      {!canSpin && filteredFillings.length === 0 && (
         <p className="notice" role="alert">
           抽選できる具がありません(リストタブで除外を解除するか追加してください)
         </p>
       )}
-      {!canSpin && fillings.length === 1 && needsTwo && (
+      {!canSpin && filteredFillings.length < 2 && needsTwo && filteredFillings.length > 0 && (
         <p className="notice" role="alert">
           具2つモードには具を2つ以上有効にしてください
         </p>
