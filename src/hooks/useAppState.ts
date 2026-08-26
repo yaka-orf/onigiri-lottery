@@ -17,6 +17,7 @@ type Action =
   | { type: 'REMOVE'; kind: ListKind; name: string }
   | { type: 'UPDATE'; kind: ListKind; name: string; newName: string }
   | { type: 'TOGGLE_EXCLUDE'; kind: ListKind; name: string }
+  | { type: 'MOVE'; kind: ListKind; from: number; to: number }
   | { type: 'SET_MODE'; mode: LotteryMode }
   | { type: 'SET_COUNT'; count: number }
   | { type: 'TOGGLE_SOUND' }
@@ -86,6 +87,23 @@ export function reducer(state: AppState, action: Action): AppState {
       if (effective(state, action.kind).length <= 1) return state
       return { ...state, [exKey]: [...excluded, action.name] }
     }
+    case 'MOVE': {
+      const list = state[action.kind]
+      const { from, to } = action
+      // 範囲外・同位置は no-op
+      if (
+        from === to ||
+        from < 0 ||
+        to < 0 ||
+        from >= list.length ||
+        to >= list.length
+      )
+        return state
+      const next = [...list]
+      const [moved] = next.splice(from, 1)
+      next.splice(to, 0, moved)
+      return { ...state, [action.kind]: next }
+    }
     case 'SET_MODE':
       return { ...state, settings: { ...state.settings, mode: action.mode } }
     case 'SET_COUNT':
@@ -127,10 +145,12 @@ export interface UseAppState {
   removeFilling: (name: string) => boolean
   updateFilling: (name: string, newName: string) => boolean
   toggleExcludeFilling: (name: string) => boolean
+  moveFilling: (from: number, to: number) => void
   addSeasoning: (name: string) => boolean
   removeSeasoning: (name: string) => boolean
   updateSeasoning: (name: string, newName: string) => boolean
   toggleExcludeSeasoning: (name: string) => boolean
+  moveSeasoning: (from: number, to: number) => void
   setLotteryMode: (mode: LotteryMode) => void
   setLotteryCount: (count: number) => void
   toggleSound: () => void
@@ -193,6 +213,11 @@ export function useAppState(): UseAppState {
   const toggleSound = useCallback(() => {
     dispatch({ type: 'TOGGLE_SOUND' })
   }, [])
+  const mkMove = (kind: ListKind) => (from: number, to: number) => {
+    dispatch({ type: 'MOVE', kind, from, to })
+  }
+  const moveFilling = useMemo(() => mkMove('fillings'), [])
+  const moveSeasoning = useMemo(() => mkMove('seasonings'), [])
   const recordDraw = useCallback((results: LotteryResult[]) => {
     dispatch({ type: 'RECORD_DRAW', results })
   }, [])
@@ -212,10 +237,12 @@ export function useAppState(): UseAppState {
     removeFilling: fillingOps.remove,
     updateFilling: fillingOps.update,
     toggleExcludeFilling: fillingOps.toggleExclude,
+    moveFilling,
     addSeasoning: seasoningOps.add,
     removeSeasoning: seasoningOps.remove,
     updateSeasoning: seasoningOps.update,
     toggleExcludeSeasoning: seasoningOps.toggleExclude,
+    moveSeasoning,
     setLotteryMode,
     setLotteryCount,
     toggleSound,
