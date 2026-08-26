@@ -33,7 +33,7 @@ export function HistoryScreen({ app }: Props) {
           </div>
           <ul className="history-list">
             {sorted.map((set, i) => (
-              <li key={set.at} className="history-set">
+              <li key={`${set.at}-${i}`} className="history-set">
                 <div className="history-meta">
                   <span className="history-no">{sorted.length - i}</span>
                   <time>{fmt(set.at)}</time>
