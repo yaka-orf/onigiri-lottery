@@ -20,7 +20,7 @@ describe('appStorage', () => {
       seasonings: ['塩'],
       excludedFillings: [],
       excludedSeasonings: [],
-      settings: { mode: 'one', count: 5 },
+      settings: { mode: 'one' as const, count: 5 },
       history: [
         {
           id: 'test-id-1',
