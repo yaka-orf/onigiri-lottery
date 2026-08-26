@@ -45,7 +45,7 @@ describe('shareOrCopy', () => {
     const result = await shareOrCopy(one)
     expect(result).toBe('shared')
     expect(share).toHaveBeenCalledTimes(1)
-    expect(share.mock.calls[0][0]).toContain('鮭')
+    expect(share.mock.calls[0][0].text).toContain('鮭')
   })
 
   it('share 不可なら clipboard.writeText で copied を返す', async () => {
