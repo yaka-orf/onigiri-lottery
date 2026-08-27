@@ -11,7 +11,7 @@ describe('App', () => {
   it('3タブが表示され、切替で画面が変わる', () => {
     render(<App />)
     // 初期は作成画面
-    expect(screen.getByRole('button', { name: 'ランダムでおにる！' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'おにる！' })).toBeInTheDocument()
     // 管理タブへ
     fireEvent.click(screen.getByRole('tab', { name: '管理' }))
     expect(screen.getByPlaceholderText(/新しい具を追加/)).toBeInTheDocument()
@@ -33,7 +33,7 @@ describe('App', () => {
       }),
     )
     render(<App />)
-    fireEvent.click(screen.getByRole('button', { name: 'ランダムでおにる！' }))
+    fireEvent.click(screen.getByRole('button', { name: 'おにる！' }))
     fireEvent.click(screen.getByRole('tab', { name: '履歴' }))
     expect(screen.queryByText(/まだ履歴はありません/)).not.toBeInTheDocument()
     // 5組すべて鮭×塩

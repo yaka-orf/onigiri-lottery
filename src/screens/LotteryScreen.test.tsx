@@ -64,12 +64,12 @@ const mk = (overrides: Partial<UseAppState> = {}): UseAppState => ({
   ...overrides,
 } as unknown as UseAppState)
 
-const findSpin = () => screen.getByRole('button', { name: 'ランダムでおにる！' })
+const findSpin = () => screen.getByRole('button', { name: 'おにる！' })
 
 describe('LotteryScreen', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('「ランダムでおにる！」押下で5組が番号付きで表示される', () => {
+  it('「おにる！」押下で5組が番号付きで表示される', () => {
     const app = mk()
     render(<LotteryScreen app={app} />)
     fireEvent.click(findSpin())

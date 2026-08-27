@@ -195,9 +195,6 @@ export function LotteryScreen({ app }: Props) {
     </>
   )
 
-  // 現在表示すべき結果
-  const displayResults = createMode === 'manual' ? manualResults : results
-
   return (
     <div className="lottery-screen">
       <div className="select-toggles">
@@ -295,7 +292,7 @@ export function LotteryScreen({ app }: Props) {
             onClick={spin}
             disabled={!canSpin}
           >
-            ランダムでおにる！
+            おにる！
           </button>
         </>
       ) : (
@@ -345,13 +342,31 @@ export function LotteryScreen({ app }: Props) {
               {manualError}
             </p>
           )}
+          {/* 入力欄の直下に保存・コピー */}
+          <div className="results-actions manual-actions">
+            <button
+              type="button"
+              className="share-button"
+              onClick={saveManual}
+              disabled={fillings.length === 0}
+            >
+              {savedState === 'done' ? '保存しました' : '保存'}
+            </button>
+            <button
+              type="button"
+              className="share-button"
+              onClick={handleShare}
+            >
+              {shareState === 'done' ? 'コピーしました' : '結果をコピー'}
+            </button>
+          </div>
         </>
       )}
 
-      {displayResults && (createMode === 'manual' || results) && (
+      {results && createMode === 'random' && (
         <div className="results-wrap">
-          <ol className="results" aria-label="作成結果" key={createMode === 'manual' ? 'manual' : spinCount}>
-            {displayResults.map((r, i) => (
+          <ol className="results" aria-label="作成結果" key={spinCount}>
+            {results.map((r, i) => (
               <li
                 key={i}
                 className="result-item"
@@ -368,30 +383,19 @@ export function LotteryScreen({ app }: Props) {
             ))}
           </ol>
           <div className="results-actions">
-            {createMode === 'manual' ? (
-              <button
-                type="button"
-                className="share-button"
-                onClick={saveManual}
-                disabled={fillings.length === 0}
-              >
-                {savedState === 'done' ? '保存しました' : '保存'}
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="share-button edit-button"
-                onClick={editResults}
-              >
-                編集
-              </button>
-            )}
             <button
               type="button"
               className="share-button"
               onClick={handleShare}
             >
               {shareState === 'done' ? 'コピーしました' : '結果をコピー'}
+            </button>
+            <button
+              type="button"
+              className="share-button edit-button"
+              onClick={editResults}
+            >
+              編集
             </button>
           </div>
         </div>

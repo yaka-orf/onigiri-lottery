@@ -415,6 +415,10 @@ button.danger {
   flex: 1;
 }
 
+.manual-actions {
+  margin-top: 4px;
+}
+
 /* --- カテゴリ --- */
 .category-chips {
   display: flex;
