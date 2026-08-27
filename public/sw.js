@@ -1,5 +1,8 @@
-// おにシミュ Service Worker — プレキャッシュ+キャッシュファースト
-const VERSION = 'v1'
+// おにシミュ Service Worker
+// 戦略: HTMLはネットワークファースト(新デプロイを即反映)、
+//       ハッシュ付きアセットはキャッシュファースト(不変)、
+//       オフライン時はキャッシュへフォールバック
+const VERSION = 'v3'
 const CACHE_NAME = `onigiri-simu-${VERSION}`
 const PRECACHE_URLS = [
   './',
@@ -33,6 +36,11 @@ self.addEventListener('activate', (event) => {
   )
 })
 
+self.addEventListener('message', (event) => {
+  // 新バージョン検知時に即時適用
+  if (event.data === 'SKIP_WAITING') self.skipWaiting()
+})
+
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
   // 同一オリジンのみ処理(外部リソースは素通り)
@@ -40,16 +48,33 @@ self.addEventListener('fetch', (event) => {
   // POST等の非GETは素通り
   if (event.request.method !== 'GET') return
 
+  const isAsset = url.pathname.includes('/assets/')
+  // ナビゲーション(HTML)はネットワークファースト
+  if (event.request.mode === 'navigate' || (!isAsset && url.pathname.endsWith('.html'))) {
+    event.respondWith(
+      fetch(event.request)
+        .then((res) => {
+          if (res.ok) {
+            const clone = res.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
+          }
+          return res
+        })
+        .catch(() =>
+          caches
+            .match(event.request)
+            .then((cached) => cached ?? caches.match('./index.html')),
+        ),
+    )
+    return
+  }
+
+  // その他(アセット・アイコン等)はキャッシュファースト
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached
-      // ナビゲーションはキャッシュになければ index.html にフォールバック(SPA)
-      if (event.request.mode === 'navigate') {
-        return caches.match('./index.html')
-      }
       return fetch(event.request)
         .then((res) => {
-          // 正常レスポンスのみキャッシュに追加
           if (res.ok) {
             const clone = res.clone()
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
