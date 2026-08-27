@@ -152,11 +152,9 @@ describe('LotteryScreen', () => {
     it('初期は1具モード。2具モードへ切替できる', () => {
       const app = mkWithModeSwitch()
       render(<LotteryScreen app={app} />)
-      const one = screen.getByRole('radio', { name: '具1つ' })
-      const two = screen.getByRole('radio', { name: '具2つ' })
-      expect(one).toBeChecked()
-      expect(two).not.toBeChecked()
-      fireEvent.click(two)
+      const two = screen.getByLabelText('具の数')
+      expect(two).toHaveValue('one')
+      fireEvent.change(two, { target: { value: 'two' } })
       expect(app.setLotteryMode).toHaveBeenCalledWith('two')
     })
 
@@ -194,17 +192,17 @@ describe('LotteryScreen', () => {
   describe('自分でおにる(手動モード)', () => {
     it('「自分」ラジオで手動選択行が表示される', () => {
       render(<LotteryScreen app={mk()} />)
-      fireEvent.click(screen.getByRole('radio', { name: '自分' }))
+      fireEvent.change(screen.getByLabelText('作成方法'), { target: { value: 'manual' } })
       // count=5 → 5行
       const selects = screen.getAllByRole('combobox')
-      expect(selects.length).toBe(10) // 各行 具+味付け の2セレクト×5行
+      expect(selects.length).toBe(12) // 切替セレクト2 + 各行 具+味付け の2×5行
     })
 
     it('デフォルト選択済みのまま「自分でおにる」で recordDraw される', () => {
       const app = mk()
       render(<LotteryScreen app={app} />)
-      fireEvent.click(screen.getByRole('radio', { name: '自分' }))
-      fireEvent.click(screen.getByRole('button', { name: '自分でおにる！' }))
+      fireEvent.change(screen.getByLabelText('作成方法'), { target: { value: 'manual' } })
+      fireEvent.click(screen.getByRole('button', { name: '保存' }))
       expect(app.recordDraw).toHaveBeenCalledTimes(1)
       expect(app.recordDraw).toHaveBeenCalledWith([
         { filling: '鮭', seasoning: '塩' },
@@ -218,10 +216,10 @@ describe('LotteryScreen', () => {
     it('未選択の具があるとエラー表示され recordDraw されない', () => {
       const app = mk()
       render(<LotteryScreen app={app} />)
-      fireEvent.click(screen.getByRole('radio', { name: '自分' }))
+      fireEvent.change(screen.getByLabelText('作成方法'), { target: { value: 'manual' } })
       // 1行目の具を未選択に
-      fireEvent.change(screen.getAllByRole('combobox')[0], { target: { value: '' } })
-      fireEvent.click(screen.getByRole('button', { name: '自分でおにる！' }))
+      fireEvent.change(screen.getAllByRole('combobox')[2], { target: { value: '' } })
+      fireEvent.click(screen.getByRole('button', { name: '保存' }))
       expect(app.recordDraw).not.toHaveBeenCalled()
       expect(screen.getByRole('alert')).toHaveTextContent('選択してください')
     })
@@ -232,7 +230,7 @@ describe('LotteryScreen', () => {
       fireEvent.click(findSpin())
       fireEvent.click(screen.getByRole('button', { name: '編集' }))
       // 手動モードに切り替わり、セレクトに結果が反映済み
-      expect(screen.getByRole('radio', { name: '自分' })).toBeChecked()
+      expect(screen.getByLabelText('作成方法')).toHaveValue('manual')
       const selects = screen.getAllByRole('combobox')
       expect(selects.length).toBeGreaterThan(0)
     })

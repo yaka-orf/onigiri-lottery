@@ -336,6 +336,40 @@ button.danger {
   border-top: 2px solid var(--accent);
 }
 
+/* --- プルダウン切替(作成方法・具の数) --- */
+.select-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.select-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.select-toggle-label {
+  font-size: 13px;
+  color: var(--ink-soft);
+  width: 64px;
+  flex-shrink: 0;
+}
+
+.select-toggle-select {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 15px;
+  font-family: inherit;
+  min-height: 44px;
+  appearance: menulist;
+}
+
 /* --- 手動選択(自分でおにる) --- */
 .manual-rows {
   list-style: none;
