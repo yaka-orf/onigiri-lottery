@@ -171,6 +171,31 @@ export function ManageScreen({ app }: Props) {
 
   return (
     <div className="manage-screen">
+      <details className="advanced-settings">
+        <summary>詳細設定</summary>
+        <div className="advanced-body">
+          <label className="setting-row">
+            <input
+              type="checkbox"
+              checked={app.state.settings.uniqueTags}
+              onChange={(e) => app.setUniqueTags(e.target.checked)}
+            />
+            <span>同じ組み合わせを重複させない(2具モード)</span>
+          </label>
+          <div className="setting-row sound-setting">
+            <button
+              type="button"
+              className={`sound-toggle${app.state.soundEnabled ? '' : ' muted'}`}
+              onClick={app.toggleSound}
+              aria-pressed={!app.state.soundEnabled}
+              aria-label={app.state.soundEnabled ? 'サウンドをオフにする' : 'サウンドをオンにする'}
+            >
+              {app.state.soundEnabled ? 'サウンド ON' : 'サウンド OFF'}
+            </button>
+          </div>
+        </div>
+      </details>
+
       <div className="segment" role="tablist" aria-label="リスト種別">
         <button
           type="button"
@@ -198,18 +223,6 @@ export function ManageScreen({ app }: Props) {
           onClick={() => setKind('tags')}
         >
           タグ
-        </button>
-      </div>
-
-      <div className="sound-toggle-row">
-        <button
-          type="button"
-          className={`sound-toggle${app.state.soundEnabled ? '' : ' muted'}`}
-          onClick={app.toggleSound}
-          aria-pressed={!app.state.soundEnabled}
-          aria-label={app.state.soundEnabled ? 'サウンドをオフにする' : 'サウンドをオンにする'}
-        >
-          {app.state.soundEnabled ? 'サウンド ON' : 'サウンド OFF'}
         </button>
       </div>
 

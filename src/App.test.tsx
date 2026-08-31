@@ -29,6 +29,7 @@ describe('App', () => {
       JSON.stringify({
         fillings: ['鮭', '梅', 'おかか', '昆布', 'ツナマヨ'],
         seasonings: ['塩'],
+        settings: { mode: 'one', count: 5, uniqueTags: true },
         history: [],
       }),
     )
@@ -36,11 +37,12 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'おにる！' }))
     fireEvent.click(screen.getByRole('tab', { name: '履歴' }))
     expect(screen.queryByText(/まだ履歴はありません/)).not.toBeInTheDocument()
-    // 履歴に1セット記録され、5組の各具が表示される
-    const historySets = screen.getAllByRole('listitem')
-    expect(historySets.length).toBeGreaterThanOrEqual(1)
+    // 履歴に1セット記録され、5組の各具が表示される(history-results内を検索)
+    const resultsList = document.querySelector('.history-results')
+    expect(resultsList).not.toBeNull()
+    const text = resultsList!.textContent ?? ''
     for (const f of ['鮭', '梅', 'おかか', '昆布', 'ツナマヨ']) {
-      expect(screen.getByText(new RegExp(f))).toBeInTheDocument()
+      expect(text).toContain(f)
     }
   })
 

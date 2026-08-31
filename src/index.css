@@ -285,11 +285,6 @@ button.danger {
 }
 
 /* --- サウンドトグル --- */
-.sound-toggle-row {
-  margin: 4px 0 8px;
-  display: flex;
-  justify-content: flex-end;
-}
 
 .sound-toggle {
   padding: 8px 14px;
@@ -419,6 +414,9 @@ button.danger {
   margin-top: 4px;
 }
 
+/* --- 同タグ排除トグル --- */
+
+
 /* --- カテゴリ --- */
 .category-chips {
   display: flex;
@@ -457,48 +455,72 @@ button.danger {
   flex-shrink: 0;
 }
 
-/* --- タグ管理 --- */
-.tag-section {
-  margin: 12px 0 16px;
-  padding: 12px 14px;
+/* --- 詳細設定(アコーディオン) --- */
+.advanced-settings {
+  margin-bottom: 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
 }
 
-.tag-heading {
+.advanced-settings summary {
+  padding: 12px 14px;
   font-size: 14px;
-  margin: 0 0 8px;
   color: var(--ink);
-}
-
-.tag-list {
+  cursor: pointer;
+  user-select: none;
   list-style: none;
-  margin: 0 0 10px;
-  padding: 0;
-}
-
-.tag-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 0;
-  min-height: 40px;
 }
 
-.tag-label {
-  flex: 1;
-  font-size: 14px;
+.advanced-settings summary::-webkit-details-marker {
+  display: none;
 }
 
-.tag-note {
-  font-size: 12px;
+.advanced-settings summary::before {
+  content: '▸';
+  margin-right: 8px;
+  transition: transform 0.15s ease;
   color: var(--ink-soft);
 }
 
-.tag-edit-input {
-  flex: 1;
+.advanced-settings[open] summary::before {
+  transform: rotate(90deg);
 }
+
+.advanced-body {
+  padding: 4px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.setting-row input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.setting-row.sound-setting {
+  justify-content: flex-end;
+}
+
+/* --- セグメント --- */
+
+
+
+
+
+
 
 @keyframes rise {
   from {

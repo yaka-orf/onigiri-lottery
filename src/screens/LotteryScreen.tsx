@@ -123,8 +123,7 @@ export function LotteryScreen({ app }: Props) {
       seasonings,
       count,
       {
-        uniqueInSet: true, // セット内の具重複は固定で排除
-        uniqueTags: app.state.settings.uniqueTags,
+        uniquePairs: app.state.settings.uniqueTags,
         twoFillings: needsTwo,
       },
       categories,
@@ -135,15 +134,15 @@ export function LotteryScreen({ app }: Props) {
     app.recordDraw(r as unknown as LotteryResult[])
   }
 
-  // おにる！可能か(制約を満たす具数があるか)
+  // おにる！可能か(制約を満たす組み合わせがあるか)
   const perRow = needsTwo ? 2 : 1
   const needed = count * perRow
-  const tagCount = new Set(
-    filteredFillings.map((f) => categories[f] ?? DEFAULT_CATEGORY),
-  ).size
+  // 2具モードのペア数: C(fillings, 2)
+  const n = filteredFillings.length
+  const pairCount = (n * (n - 1)) / 2
   const canDrawUnique =
     filteredFillings.length >= needed &&
-    (!app.state.settings.uniqueTags || tagCount >= needed)
+    (!app.state.settings.uniqueTags || !needsTwo || pairCount >= count)
 
   // 手動選択を履歴に保存
   const saveManual = () => {
@@ -299,20 +298,11 @@ export function LotteryScreen({ app }: Props) {
           )}
           {!canDrawUnique && canSpin && (
             <p className="notice" role="alert">
-              {app.state.settings.uniqueTags
-                ? `タグの種類が足りません(${count * perRow}個の抽選には${count * perRow}種類以上のタグが必要です)`
+              {needsTwo && app.state.settings.uniqueTags
+                ? `組み合わせが足りません(${count}個の抽選には${count}通り以上の具のペアが必要です)`
                 : `具が足りません(重複なし抽選には${needed}個以上の具が必要です)`}
             </p>
           )}
-          {/* 同タグ排除トグル */}
-          <label className="unique-tags-toggle">
-            <input
-              type="checkbox"
-              checked={app.state.settings.uniqueTags}
-              onChange={(e) => app.setUniqueTags(e.target.checked)}
-            />
-            <span>同じタグの具を重複させない</span>
-          </label>
           <button
             type="button"
             className="spin-button"
