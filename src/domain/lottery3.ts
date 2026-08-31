@@ -1,8 +1,8 @@
 import type { Category } from './model'
 
 export interface UniqueOptions {
-  /** セット内で同じ組(具のペア)を出さない。1具モードは具単体の重複禁止 */
-  uniquePairs: boolean
+  /** 2具モードで組内の2具が同タグになるのを避ける */
+  uniqueTags: boolean
   /** 2具モード */
   twoFillings?: boolean
 }
@@ -19,24 +19,27 @@ const pairKey = (a: string, b: string): string =>
   a < b ? `${a}\u0000${b}` : `${b}\u0000${a}`
 
 /**
- * 制約付き抽選: セット内で同じ組(ペア)を出さない。
- * - 1具モード: 同じ具がセット内で重複しない
- * - 2具モード: 同じペア(A×B と B×A を同一視)がセット内で重複しない
- *   (A×B と A×C、C×B と D×B などは許可)
+ * 制約付き抽選。
+ * - 1具モード: 同じ具がセット内で重複しない(固定)
+ * - 2具モード: 同じペア(A×B と B×A を同一視)がセット内で重複しない(固定)
+ *   (A×B と A×C、C×B と D×B など一部共通は許可)
+ * - uniqueTags ON: 2具モードで組内の2具が同じタグにならない(categories が必要)
  */
 export function drawSetUnique(
   fillings: string[],
   seasonings: string[],
   count: number,
   options: UniqueOptions,
-  _categories?: Record<string, Category>,
+  categories?: Record<string, Category>,
 ): BaseResult[] | null {
-  const { uniquePairs, twoFillings = false } = options
+  const { uniqueTags, twoFillings = false } = options
 
   if (fillings.length === 0) return null
 
-  // 事前チェック: 1具モードで重複禁止なら具数 >= count が必要
-  if (!twoFillings && uniquePairs && fillings.length < count) return null
+  // 事前チェック: 1具モードは具数 >= count が必要(重複禁止は固定)
+  if (!twoFillings && fillings.length < count) return null
+
+  const categoryOf = (f: string): Category | undefined => categories?.[f]
 
   const out: BaseResult[] = []
   // セット全体で使用済みのキー(具 or ペア)
@@ -46,27 +49,33 @@ export function drawSetUnique(
     const row: BaseResult = { filling: '', seasoning: '' }
 
     if (!twoFillings) {
-      // 1具モード: 使用済み具を除外
-      const candidates = fillings.filter((f) => !uniquePairs || !usedKeys.has(f))
+      // 1具モード: 使用済み具を除外(固定)
+      const candidates = fillings.filter((f) => !usedKeys.has(f))
       if (candidates.length === 0) return null
       const chosen = pick(candidates)
-      if (uniquePairs) usedKeys.add(chosen)
+      usedKeys.add(chosen)
       row.filling = chosen
     } else {
-      // 2具モード: 組内で異なる2具 & 使用済みペアを除外
+      // 2具モード: 組内で異なる2具 & 使用済みペアを除外(固定)
+      // uniqueTags ON の場合、組内2具のタグも異なる
       if (fillings.length < 2) return null
       const candidates: Array<[string, string]> = []
       for (let a = 0; a < fillings.length; a++) {
         for (let b = a + 1; b < fillings.length; b++) {
           const fa = fillings[a]
           const fb = fillings[b]
-          if (uniquePairs && usedKeys.has(pairKey(fa, fb))) continue
+          if (usedKeys.has(pairKey(fa, fb))) continue
+          if (uniqueTags) {
+            const ca = categoryOf(fa)
+            const cb = categoryOf(fb)
+            if (ca !== undefined && ca === cb) continue
+          }
           candidates.push([fa, fb])
         }
       }
       if (candidates.length === 0) return null
       const [fa, fb] = pick(candidates)
-      if (uniquePairs) usedKeys.add(pairKey(fa, fb))
+      usedKeys.add(pairKey(fa, fb))
       row.filling = fa
       row.filling2 = fb
     }

@@ -180,19 +180,19 @@ export function ManageScreen({ app }: Props) {
               checked={app.state.settings.uniqueTags}
               onChange={(e) => app.setUniqueTags(e.target.checked)}
             />
-            <span>同じ組み合わせを重複させない(2具モード)</span>
+            <span>2具モードで同じタグ同士の組み合わせを発生させない</span>
           </label>
-          <div className="setting-row sound-setting">
-            <button
-              type="button"
-              className={`sound-toggle${app.state.soundEnabled ? '' : ' muted'}`}
-              onClick={app.toggleSound}
-              aria-pressed={!app.state.soundEnabled}
-              aria-label={app.state.soundEnabled ? 'サウンドをオフにする' : 'サウンドをオンにする'}
-            >
-              {app.state.soundEnabled ? 'サウンド ON' : 'サウンド OFF'}
-            </button>
-          </div>
+          <label className="setting-row">
+            <input
+              type="checkbox"
+              checked={app.state.soundEnabled}
+              onChange={(e) => {
+                if (e.target.checked !== app.state.soundEnabled) app.toggleSound()
+              }}
+              aria-label="サウンドをONにする"
+            />
+            <span>サウンドをONにする</span>
+          </label>
         </div>
       </details>
 
@@ -301,6 +301,28 @@ export function ManageScreen({ app }: Props) {
                     {name}
                     {isTags && isDefaultTag(name) && <span className="tag-note"> (既定)</span>}
                   </span>
+                  {isTags && (
+                    <span className="reorder-btns">
+                      <button
+                        type="button"
+                        className="reorder-btn"
+                        onClick={() => app.moveTag(index, index - 1)}
+                        disabled={index === 0}
+                        aria-label={`${name}を上へ移動`}
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        className="reorder-btn"
+                        onClick={() => app.moveTag(index, index + 1)}
+                        disabled={index === list.length - 1}
+                        aria-label={`${name}を下へ移動`}
+                      >
+                        ▼
+                      </button>
+                    </span>
+                  )}
                   {isFillings && (
                     <select
                       className="category-select"

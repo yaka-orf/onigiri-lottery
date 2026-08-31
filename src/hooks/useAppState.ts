@@ -24,6 +24,7 @@ type Action =
   | { type: 'ADD_TAG'; id: string; label: string }
   | { type: 'RENAME_TAG'; id: string; label: string }
   | { type: 'REMOVE_TAG'; id: string }
+  | { type: 'MOVE_TAG'; from: number; to: number }
   | { type: 'SET_MODE'; mode: LotteryMode }
   | { type: 'SET_COUNT'; count: number }
   | { type: 'SET_UNIQUE_TAGS'; enabled: boolean }
@@ -142,6 +143,21 @@ export function reducer(state: AppState, action: Action): AppState {
         ),
       }
     }
+    case 'MOVE_TAG': {
+      const { from, to } = action
+      if (
+        from === to ||
+        from < 0 ||
+        to < 0 ||
+        from >= state.tags.length ||
+        to >= state.tags.length
+      )
+        return state
+      const tags = [...state.tags]
+      const [moved] = tags.splice(from, 1)
+      tags.splice(to, 0, moved)
+      return { ...state, tags }
+    }
     case 'REMOVE_TAG': {
       // フォールバック先(other)は削除不可・最後の1つは削除不可
       if (action.id === DEFAULT_CATEGORY) return state
@@ -213,6 +229,7 @@ export interface UseAppState {
   addTag: (label: string) => boolean
   renameTag: (id: string, label: string) => boolean
   removeTag: (id: string) => boolean
+  moveTag: (from: number, to: number) => void
   recordDraw: (results: LotteryResult[]) => void
   toggleFavorite: (id: string) => void
   clearHistory: () => void
@@ -301,6 +318,9 @@ export function useAppState(): UseAppState {
     dispatch({ type: 'REMOVE_TAG', id })
     return true
   }, [])
+  const moveTag = useCallback((from: number, to: number) => {
+    dispatch({ type: 'MOVE_TAG', from, to })
+  }, [])
   const mkMove = (kind: ListKind) => (from: number, to: number) => {
     dispatch({ type: 'MOVE', kind, from, to })
   }
@@ -339,6 +359,7 @@ export function useAppState(): UseAppState {
     addTag,
     renameTag,
     removeTag,
+    moveTag,
     recordDraw,
     toggleFavorite,
     clearHistory,

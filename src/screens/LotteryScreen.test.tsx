@@ -252,5 +252,43 @@ describe('LotteryScreen', () => {
       const selects = screen.getAllByRole('combobox')
       expect(selects.length).toBeGreaterThan(0)
     })
+
+    it('uniqueTags ON でも同タグペア以外があれば抽選できる', () => {
+      const app = mk({
+        state: {
+          fillings: ['鮭', '梅', 'おかか', '昆布', 'ツナマヨ', '唐揚げ'],
+          seasonings: ['塩'],
+          settings: { mode: 'two', count: 2, uniqueTags: true },
+          history: [],
+          tags: [],
+          fillingCategories: {
+            鮭: 'fish', 梅: 'classic', おかか: 'classic',
+            昆布: 'classic', ツナマヨ: 'fish', 唐揚げ: 'meat',
+          },
+        } as any,
+        effectiveFillings: ['鮭', '梅', 'おかか', '昆布', 'ツナマヨ', '唐揚げ'],
+      })
+      render(<LotteryScreen app={app} />)
+      // ボタンが有効(同タグペアを除いてもペアが足りている)
+      expect(findSpin()).toBeEnabled()
+      fireEvent.click(findSpin())
+      expect(app.recordDraw).toHaveBeenCalled()
+    })
+
+    it('uniqueTags ON で同タグペアしかない場合は無効', () => {
+      const app = mk({
+        state: {
+          fillings: ['鮭', 'ツナマヨ'],
+          seasonings: ['塩'],
+          settings: { mode: 'two', count: 1, uniqueTags: true },
+          history: [],
+          tags: [],
+          fillingCategories: { 鮭: 'fish', ツナマヨ: 'fish' },
+        } as any,
+        effectiveFillings: ['鮭', 'ツナマヨ'],
+      })
+      render(<LotteryScreen app={app} />)
+      expect(findSpin()).toBeDisabled()
+    })
   })
 })

@@ -455,6 +455,33 @@ button.danger {
   flex-shrink: 0;
 }
 
+/* --- タグ並べ替えボタン --- */
+.reorder-btns {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.reorder-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reorder-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
 /* --- 詳細設定(アコーディオン) --- */
 .advanced-settings {
   margin-bottom: 12px;

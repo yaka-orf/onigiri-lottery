@@ -123,7 +123,7 @@ export function LotteryScreen({ app }: Props) {
       seasonings,
       count,
       {
-        uniquePairs: app.state.settings.uniqueTags,
+        uniqueTags: app.state.settings.uniqueTags,
         twoFillings: needsTwo,
       },
       categories,
@@ -140,9 +140,23 @@ export function LotteryScreen({ app }: Props) {
   // 2具モードのペア数: C(fillings, 2)
   const n = filteredFillings.length
   const pairCount = (n * (n - 1)) / 2
+  // uniqueTags ON 時: 同タグペアを除いたペア数
+  let okPairCount = pairCount
+  if (needsTwo && app.state.settings.uniqueTags) {
+    const byTag: Record<string, number> = {}
+    for (const f of filteredFillings) {
+      const c = categories[f] ?? DEFAULT_CATEGORY
+      byTag[c] = (byTag[c] ?? 0) + 1
+    }
+    const sameTagPairs = Object.values(byTag).reduce(
+      (sum, cnt) => sum + (cnt * (cnt - 1)) / 2,
+      0,
+    )
+    okPairCount = pairCount - sameTagPairs
+  }
   const canDrawUnique =
     filteredFillings.length >= needed &&
-    (!app.state.settings.uniqueTags || !needsTwo || pairCount >= count)
+    (!needsTwo || okPairCount >= count)
 
   // 手動選択を履歴に保存
   const saveManual = () => {
@@ -299,7 +313,7 @@ export function LotteryScreen({ app }: Props) {
           {!canDrawUnique && canSpin && (
             <p className="notice" role="alert">
               {needsTwo && app.state.settings.uniqueTags
-                ? `組み合わせが足りません(${count}個の抽選には${count}通り以上の具のペアが必要です)`
+                ? `組み合わせが足りません(選択できる具のペアが${count}通り未満です)`
                 : `具が足りません(重複なし抽選には${needed}個以上の具が必要です)`}
             </p>
           )}

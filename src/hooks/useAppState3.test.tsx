@@ -63,4 +63,26 @@ describe('useAppState(並べ替え)', () => {
     expect(result.current.state.excludedSeasonings).toEqual(['塩'])
     expect(result.current.effectiveSeasonings).toEqual(['醤油', 'ごま油'])
   })
+
+  it('moveTag: タグ並べ替え(作成タブのチップ順に反映)', () => {
+    const { result } = renderHook(() => useAppState())
+    // 初期タグ: meat, fish, classic, other
+    act(() => {
+      result.current.moveTag(0, 2)
+    })
+    expect(result.current.state.tags.map((t) => t.id)).toEqual([
+      'fish', 'classic', 'meat', 'other',
+    ])
+  })
+
+  it('moveTag: 範囲外は no-op', () => {
+    const { result } = renderHook(() => useAppState())
+    act(() => {
+      result.current.moveTag(-1, 0)
+      result.current.moveTag(0, 9)
+    })
+    expect(result.current.state.tags.map((t) => t.id)).toEqual([
+      'meat', 'fish', 'classic', 'other',
+    ])
+  })
 })
