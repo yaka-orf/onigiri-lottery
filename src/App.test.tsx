@@ -23,11 +23,11 @@ describe('App', () => {
   it('統合フロー: まわす→履歴に反映', () => {
     const { unmount } = render(<App />)
     unmount()
-    // 具1件・味付け1件に固定して抽選結果を確定させる
+    // 具5件・味付け1件に固定(重複なし抽選のため5件必要)
     localStorage.setItem(
       'onigiri-lottery',
       JSON.stringify({
-        fillings: ['鮭'],
+        fillings: ['鮭', '梅', 'おかか', '昆布', 'ツナマヨ'],
         seasonings: ['塩'],
         history: [],
       }),
@@ -36,8 +36,12 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'おにる！' }))
     fireEvent.click(screen.getByRole('tab', { name: '履歴' }))
     expect(screen.queryByText(/まだ履歴はありません/)).not.toBeInTheDocument()
-    // 5組すべて鮭×塩
-    expect(screen.getAllByText('鮭')).toHaveLength(5)
+    // 履歴に1セット記録され、5組の各具が表示される
+    const historySets = screen.getAllByRole('listitem')
+    expect(historySets.length).toBeGreaterThanOrEqual(1)
+    for (const f of ['鮭', '梅', 'おかか', '昆布', 'ツナマヨ']) {
+      expect(screen.getByText(new RegExp(f))).toBeInTheDocument()
+    }
   })
 
   it('統合フロー: 管理で具を追加してlocalStorageに保存される', () => {

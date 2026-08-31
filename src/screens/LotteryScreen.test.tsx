@@ -22,14 +22,23 @@ vi.mock('../domain/lottery2', () => ({
     { filling: 'ツナマヨ', filling2: '梅', seasoning: 'ごま油' },
   ]),
 }))
+vi.mock('../domain/lottery3', () => ({
+  drawSetUnique: vi.fn(() => [
+    { filling: '鮭', seasoning: '塩' },
+    { filling: '梅', seasoning: '醤油' },
+    { filling: 'おかか', seasoning: '塩' },
+    { filling: '昆布', seasoning: 'なし' },
+    { filling: 'ツナマヨ', seasoning: 'ごま油' },
+  ] as LotteryResult[]),
+}))
 
 const mk = (overrides: Partial<UseAppState> = {}): UseAppState => ({
   state: {
-    fillings: ['鮭', '梅', 'おかか'],
+    fillings: ['鮭', '梅', 'おかか', '昆布', 'ツナマヨ'],
     seasonings: ['塩', '醤油'],
     excludedFillings: [],
     excludedSeasonings: [],
-    settings: { mode: 'one', count: 5 },
+    settings: { mode: 'one', count: 5, uniqueTags: false },
     soundEnabled: false,
     tags: [
       { id: 'meat', label: '肉' },
@@ -37,10 +46,10 @@ const mk = (overrides: Partial<UseAppState> = {}): UseAppState => ({
       { id: 'classic', label: '定番' },
       { id: 'other', label: 'その他' },
     ],
-    fillingCategories: { 鮭: 'fish', 梅: 'classic', おかか: 'classic' },
+    fillingCategories: { 鮭: 'fish', 梅: 'classic', おかか: 'classic', 昆布: 'classic', ツナマヨ: 'fish' },
     history: [],
   },
-  effectiveFillings: ['鮭', '梅', 'おかか'],
+  effectiveFillings: ['鮭', '梅', 'おかか', '昆布', 'ツナマヨ'],
   effectiveSeasonings: ['塩', '醤油'],
   storageAvailable: true,
   addFilling: vi.fn(),
@@ -101,7 +110,7 @@ describe('LotteryScreen', () => {
 
   it('fillings 0件時は「おにる！」disabled + 案内文言', () => {
     const app = mk({
-      state: { fillings: [], seasonings: ['塩'], settings: { mode: 'one', count: 5 }, history: [], tags: [], fillingCategories: {} } as any,
+      state: { fillings: [], seasonings: ['塩'], settings: { mode: 'one', count: 5, uniqueTags: false }, history: [], tags: [], fillingCategories: {} } as any,
       effectiveFillings: [],
     })
     render(<LotteryScreen app={app} />)
@@ -111,16 +120,16 @@ describe('LotteryScreen', () => {
 
   it('再抽選で結果が入れ替わる', async () => {
     const app = mk()
-    const { drawSet } = await import('../domain/lottery')
-    const mocked = vi.mocked(drawSet)
+    const { drawSetUnique } = await import('../domain/lottery3')
+    const mocked = vi.mocked(drawSetUnique)
     render(<LotteryScreen app={app} />)
     fireEvent.click(findSpin())
     mocked.mockImplementationOnce(() => [
       { filling: '明太子', seasoning: '塩' },
-      { filling: '明太子', seasoning: '塩' },
-      { filling: '明太子', seasoning: '塩' },
-      { filling: '明太子', seasoning: '塩' },
-      { filling: '明太子', seasoning: '塩' },
+      { filling: '鮭', seasoning: '塩' },
+      { filling: '梅', seasoning: '塩' },
+      { filling: 'おかか', seasoning: '塩' },
+      { filling: '昆布', seasoning: '塩' },
     ])
     fireEvent.click(findSpin())
     expect(screen.getAllByRole('listitem')[0]).toHaveTextContent('明太子')
@@ -158,11 +167,20 @@ describe('LotteryScreen', () => {
       expect(app.setLotteryMode).toHaveBeenCalledWith('two')
     })
 
-    it('2具モードで抽選すると2つの具が「×」区切りで表示され recordDraw も2具で呼ばれる', () => {
+    it('2具モードで抽選すると2つの具が「×」区切りで表示され recordDraw も2具で呼ばれる', async () => {
       // settings が two の state で直接描画して検証
       const app = mk({
-        state: { fillings: ['鮭', '梅', 'おかか'], seasonings: ['塩', '醤油'], settings: { mode: 'two', count: 5 }, history: [], tags: [], fillingCategories: {} } as any,
+        state: { fillings: ['鮭', '梅', 'おかか', '昆布', 'ツナマヨ', '明太子', '焼きたらこ', 'たまご', '唐揚げ', 'ツナ'], seasonings: ['塩', '醤油'], settings: { mode: 'two', count: 5, uniqueTags: false }, history: [], tags: [], fillingCategories: {} } as any,
+        effectiveFillings: ['鮭', '梅', 'おかか', '昆布', 'ツナマヨ', '明太子', '焼きたらこ', 'たまご', '唐揚げ', 'ツナ'],
       })
+      const { drawSetUnique } = await import('../domain/lottery3')
+      vi.mocked(drawSetUnique).mockReturnValueOnce([
+        { filling: '鮭', filling2: '梅', seasoning: '塩' },
+        { filling: '昆布', filling2: 'たまご', seasoning: '醤油' },
+        { filling: 'おかか', filling2: '明太子', seasoning: '塩' },
+        { filling: '焼きたらこ', filling2: '昆布', seasoning: 'なし' },
+        { filling: 'ツナマヨ', filling2: '唐揚げ', seasoning: 'ごま油' },
+      ] as any)
       render(<LotteryScreen app={app} />)
       fireEvent.click(findSpin())
       const items = screen.getAllByRole('listitem')
@@ -173,14 +191,14 @@ describe('LotteryScreen', () => {
         { filling: '鮭', filling2: '梅', seasoning: '塩' },
         { filling: '昆布', filling2: 'たまご', seasoning: '醤油' },
         { filling: 'おかか', filling2: '明太子', seasoning: '塩' },
-        { filling: '鮭', filling2: '昆布', seasoning: 'なし' },
-        { filling: 'ツナマヨ', filling2: '梅', seasoning: 'ごま油' },
+        { filling: '焼きたらこ', filling2: '昆布', seasoning: 'なし' },
+        { filling: 'ツナマヨ', filling2: '唐揚げ', seasoning: 'ごま油' },
       ])
     })
 
     it('具が1件しかない状態で2具モードは「おにる！」disabled', () => {
       const app = mk({
-        state: { fillings: ['鮭'], seasonings: ['塩'], settings: { mode: 'two', count: 5 }, history: [], tags: [], fillingCategories: {} } as any,
+        state: { fillings: ['鮭'], seasonings: ['塩'], settings: { mode: 'two', count: 5, uniqueTags: false }, history: [], tags: [], fillingCategories: {} } as any,
         effectiveFillings: ['鮭'],
       })
       render(<LotteryScreen app={app} />)

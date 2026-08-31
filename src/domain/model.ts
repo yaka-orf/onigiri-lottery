@@ -10,6 +10,8 @@ export type LotteryMode = 'one' | 'two'
 export interface LotterySettings {
   mode: LotteryMode
   count: number
+  /** セット内で同じタグの具を許可しない */
+  uniqueTags: boolean
 }
 
 // --- 具カテゴリ(カスタムタグ対応) ---
@@ -69,7 +71,7 @@ export interface AppState {
   history: HistorySet[]
 }
 
-export const defaultSettings: LotterySettings = { mode: 'one', count: 5 }
+export const defaultSettings: LotterySettings = { mode: 'one', count: 5, uniqueTags: false }
 
 export const defaultFillings = [
   '鮭',
@@ -183,7 +185,12 @@ export function normalizeState(raw: unknown): AppState {
       typeof rawCount === 'number' && Number.isFinite(rawCount)
         ? Math.min(10, Math.max(1, Math.round(rawCount)))
         : defaultSettings.count
-    return { mode, count }
+    const rawUniqueTags =
+      typeof raw === 'object' && raw !== null
+        ? (raw as Record<string, unknown>).uniqueTags
+        : undefined
+    const uniqueTags = rawUniqueTags === true
+    return { mode, count, uniqueTags }
   }
 
   // タグ正規化: id/label とも文字列のもののみ。最低1つ必要(空ならデフォルト)

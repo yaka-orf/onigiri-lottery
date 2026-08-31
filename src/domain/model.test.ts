@@ -28,7 +28,7 @@ describe('normalizeState', () => {
       seasonings: [...defaultSeasonings],
       excludedFillings: [],
       excludedSeasonings: [],
-      settings: { mode: 'one', count: 5 },
+      settings: { mode: 'one', count: 5, uniqueTags: false },
       soundEnabled: true,
       fillingCategories: { ...defaultFillingCategories },
       tags: [
@@ -46,7 +46,7 @@ describe('normalizeState', () => {
       seasonings: [...defaultSeasonings],
       excludedFillings: [],
       excludedSeasonings: [],
-      settings: { mode: 'one', count: 5 },
+      settings: { mode: 'one', count: 5, uniqueTags: false },
       soundEnabled: true,
       fillingCategories: { ...defaultFillingCategories },
       tags: [

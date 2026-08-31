@@ -26,6 +26,7 @@ type Action =
   | { type: 'REMOVE_TAG'; id: string }
   | { type: 'SET_MODE'; mode: LotteryMode }
   | { type: 'SET_COUNT'; count: number }
+  | { type: 'SET_UNIQUE_TAGS'; enabled: boolean }
   | { type: 'TOGGLE_SOUND' }
   | { type: 'RECORD_DRAW'; results: LotteryResult[] }
   | { type: 'TOGGLE_FAV'; id: string }
@@ -161,6 +162,8 @@ export function reducer(state: AppState, action: Action): AppState {
         ...state,
         settings: { ...state.settings, count: Math.min(10, Math.max(1, action.count)) },
       }
+    case 'SET_UNIQUE_TAGS':
+      return { ...state, settings: { ...state.settings, uniqueTags: action.enabled } }
     case 'TOGGLE_SOUND':
       return { ...state, soundEnabled: !state.soundEnabled }
     case 'RECORD_DRAW': {
@@ -204,6 +207,7 @@ export interface UseAppState {
   moveSeasoning: (from: number, to: number) => void
   setLotteryMode: (mode: LotteryMode) => void
   setLotteryCount: (count: number) => void
+  setUniqueTags: (enabled: boolean) => void
   toggleSound: () => void
   setFillingCategory: (name: string, category: Category) => void
   addTag: (label: string) => boolean
@@ -264,6 +268,9 @@ export function useAppState(): UseAppState {
   }, [])
   const setLotteryCount = useCallback((count: number) => {
     dispatch({ type: 'SET_COUNT', count })
+  }, [])
+  const setUniqueTags = useCallback((enabled: boolean) => {
+    dispatch({ type: 'SET_UNIQUE_TAGS', enabled })
   }, [])
   const toggleSound = useCallback(() => {
     dispatch({ type: 'TOGGLE_SOUND' })
@@ -326,6 +333,7 @@ export function useAppState(): UseAppState {
     moveSeasoning,
     setLotteryMode,
     setLotteryCount,
+    setUniqueTags,
     toggleSound,
     setFillingCategory,
     addTag,

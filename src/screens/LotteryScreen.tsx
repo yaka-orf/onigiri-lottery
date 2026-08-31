@@ -1,11 +1,10 @@
 import { useState } from 'react'
-import { drawSet } from '../domain/lottery'
-import { drawSetTwoFillings } from '../domain/lottery2'
 import type { LotteryResult } from '../domain/lottery'
 import type { LotteryResult2 } from '../domain/lottery2'
 import type { UseAppState } from '../hooks/useAppState'
 import { shareOrCopy } from '../lib/share'
 import { playSpin } from '../lib/sound'
+import { drawSetUnique } from '../domain/lottery3'
 import {
   DEFAULT_CATEGORY,
 } from '../domain/model'
@@ -119,20 +118,32 @@ export function LotteryScreen({ app }: Props) {
   const spin = () => {
     if (!canSpin) return
     if (soundEnabled) playSpin()
-    if (needsTwo) {
-      const r = drawSetTwoFillings(filteredFillings, seasonings, count)
-      if (r === null) return
-      setResults(r)
-      setSpinCount((c) => c + 1)
-      app.recordDraw(r as unknown as LotteryResult[])
-    } else {
-      const r = drawSet(filteredFillings, seasonings, count)
-      if (r === null) return
-      setResults(r)
-      setSpinCount((c) => c + 1)
-      app.recordDraw(r)
-    }
+    const r = drawSetUnique(
+      filteredFillings,
+      seasonings,
+      count,
+      {
+        uniqueInSet: true, // セット内の具重複は固定で排除
+        uniqueTags: app.state.settings.uniqueTags,
+        twoFillings: needsTwo,
+      },
+      categories,
+    )
+    if (r === null) return
+    setResults(r as LotteryResult[])
+    setSpinCount((c) => c + 1)
+    app.recordDraw(r as unknown as LotteryResult[])
   }
+
+  // おにる！可能か(制約を満たす具数があるか)
+  const perRow = needsTwo ? 2 : 1
+  const needed = count * perRow
+  const tagCount = new Set(
+    filteredFillings.map((f) => categories[f] ?? DEFAULT_CATEGORY),
+  ).size
+  const canDrawUnique =
+    filteredFillings.length >= needed &&
+    (!app.state.settings.uniqueTags || tagCount >= needed)
 
   // 手動選択を履歴に保存
   const saveManual = () => {
@@ -286,11 +297,27 @@ export function LotteryScreen({ app }: Props) {
               具2つモードには具を2つ以上有効にしてください
             </p>
           )}
+          {!canDrawUnique && canSpin && (
+            <p className="notice" role="alert">
+              {app.state.settings.uniqueTags
+                ? `タグの種類が足りません(${count * perRow}個の抽選には${count * perRow}種類以上のタグが必要です)`
+                : `具が足りません(重複なし抽選には${needed}個以上の具が必要です)`}
+            </p>
+          )}
+          {/* 同タグ排除トグル */}
+          <label className="unique-tags-toggle">
+            <input
+              type="checkbox"
+              checked={app.state.settings.uniqueTags}
+              onChange={(e) => app.setUniqueTags(e.target.checked)}
+            />
+            <span>同じタグの具を重複させない</span>
+          </label>
           <button
             type="button"
             className="spin-button"
             onClick={spin}
-            disabled={!canSpin}
+            disabled={!canSpin || !canDrawUnique}
           >
             おにる！
           </button>
