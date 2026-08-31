@@ -155,7 +155,7 @@ export function LotteryScreen({ app }: Props) {
     okPairCount = pairCount - sameTagPairs
   }
   const canDrawUnique =
-    filteredFillings.length >= needed &&
+    filteredFillings.length >= (needsTwo ? 2 : count) &&
     (!needsTwo || okPairCount >= count)
 
   // 手動選択を履歴に保存

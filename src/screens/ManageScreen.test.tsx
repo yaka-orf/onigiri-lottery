@@ -140,10 +140,14 @@ describe('ManageScreen', () => {
       expect(deleteBtn).toBeDisabled()
     })
 
-    it('タグ行にドラッグハンドルは表示されない', () => {
+    it('タグ行にもドラッグハンドルが表示される(具・味付けと同じUI)', () => {
       render(<ManageScreen app={mk()} />)
       fireEvent.click(screen.getByRole('tab', { name: 'タグ' }))
-      expect(screen.queryByRole('button', { name: '肉を並べ替え' })).not.toBeInTheDocument()
+      const handle = screen.getByRole('button', { name: '肉を並べ替え' })
+      expect(handle).toBeInTheDocument()
+      // タグ行はdraggable(HTML5 DnD対応)
+      const row = handle.closest('li')
+      expect(row).toHaveAttribute('draggable', 'true')
     })
   })
 

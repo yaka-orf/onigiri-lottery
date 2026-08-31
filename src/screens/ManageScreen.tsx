@@ -81,9 +81,10 @@ export function ManageScreen({ app }: Props) {
     else if (kind === 'seasonings') app.toggleExcludeSeasoning(name)
   }
 
-  // --- ドラッグ&ドロップ並べ替え(具・味付けのみ) ---
+  // --- ドラッグ&ドロップ並べ替え(具・味付け・タグ) ---
   const move = (from: number, to: number) => {
-    if (isFillings) app.moveFilling(from, to)
+    if (isTags) app.moveTag(from, to)
+    else if (isFillings) app.moveFilling(from, to)
     else app.moveSeasoning(from, to)
   }
 
@@ -251,7 +252,7 @@ export function ManageScreen({ app }: Props) {
                     }
                   : undefined
               }
-              draggable={!isExcluded && !isTags}
+              draggable={!isExcluded}
               onDragStart={(e) => handleDragStart(e, index)}
               onDragOver={(e) => handleDragOver(e, index)}
               onDrop={(e) => handleDrop(e, index)}
@@ -274,55 +275,28 @@ export function ManageScreen({ app }: Props) {
                 </>
               ) : (
                 <>
-                  {!isTags && (
-                    <button
-                      type="button"
-                      className="drag-handle"
-                      aria-label={`${name}を並べ替え`}
-                      onPointerDown={(e) => {
-                        if (isExcluded || e.pointerType === 'mouse') return
-                        startTouchDrag(index, e.clientY)
-                      }}
-                      onPointerMove={(e) => {
-                        if (touchDrag?.from === index && e.pointerType !== 'mouse') {
-                          moveTouchDrag(e.clientY)
-                        }
-                      }}
-                      onPointerUp={endTouchDrag}
-                      onPointerCancel={endTouchDrag}
-                      onClick={() => {
-                        // マウス用フォールバック(クリックでは何もしない)
-                      }}
-                    >
-                      ☰
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    className="drag-handle"
+                    aria-label={`${name}を並べ替え`}
+                    onPointerDown={(e) => {
+                      if (isExcluded || e.pointerType === 'mouse') return
+                      startTouchDrag(index, e.clientY)
+                    }}
+                    onPointerMove={(e) => {
+                      if (touchDrag?.from === index && e.pointerType !== 'mouse') {
+                        moveTouchDrag(e.clientY)
+                      }
+                    }}
+                    onPointerUp={endTouchDrag}
+                    onPointerCancel={endTouchDrag}
+                  >
+                    ☰
+                  </button>
                   <span className="item-name">
                     {name}
                     {isTags && isDefaultTag(name) && <span className="tag-note"> (既定)</span>}
                   </span>
-                  {isTags && (
-                    <span className="reorder-btns">
-                      <button
-                        type="button"
-                        className="reorder-btn"
-                        onClick={() => app.moveTag(index, index - 1)}
-                        disabled={index === 0}
-                        aria-label={`${name}を上へ移動`}
-                      >
-                        ▲
-                      </button>
-                      <button
-                        type="button"
-                        className="reorder-btn"
-                        onClick={() => app.moveTag(index, index + 1)}
-                        disabled={index === list.length - 1}
-                        aria-label={`${name}を下へ移動`}
-                      >
-                        ▼
-                      </button>
-                    </span>
-                  )}
                   {isFillings && (
                     <select
                       className="category-select"
