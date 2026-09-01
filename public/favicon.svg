@@ -15,6 +15,8 @@
     <clipPath id="riceClip"><use href="#rice"/></clipPath>
   </defs>
 
+  <!-- おにぎり全体を拡大(アイコン占有率約75%・iOS標準的な図形サイズ) -->
+  <g transform="translate(64 64) scale(1.4) translate(-64 -64)">
   <!-- 米(純白#F8F8F8・薄いグレーの輪郭) -->
   <use href="#rice" fill="#f8f8f8" stroke="#e8e8e8" stroke-width="1.5"/>
 
@@ -44,5 +46,6 @@
     <ellipse cx="45" cy="39" rx="2.4" ry="1.15" transform="rotate(25 45 39)"/>
     <ellipse cx="67" cy="80" rx="2.7" ry="1.25" transform="rotate(-8 67 80)"/>
     <ellipse cx="51" cy="85" rx="2.5" ry="1.15" transform="rotate(15 51 85)"/>
+  </g>
   </g>
 </svg>
