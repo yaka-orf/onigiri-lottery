@@ -18,7 +18,7 @@
   <!-- おにぎり全体を拡大(アイコン占有率約75%・iOS標準的な図形サイズ) -->
   <g transform="translate(64 64) scale(1.4) translate(-64 -64)">
   <!-- 米(純白#F8F8F8・薄いグレーの輪郭) -->
-  <use href="#rice" fill="#f8f8f8" stroke="#e8e8e8" stroke-width="1.5"/>
+  <use href="#rice" fill="#f8f8f8" stroke="#c8cdd0" stroke-width="2"/>
 
   <!-- 海苔: 非常に暗い深緑・わずかに緑のニュアンス -->
   <g clip-path="url(#riceClip)">
