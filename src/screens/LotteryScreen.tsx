@@ -125,6 +125,7 @@ export function LotteryScreen({ app }: Props) {
       {
         uniqueTags: app.state.settings.uniqueTags,
         twoFillings: needsTwo,
+        fixedFilling: needsTwo ? app.state.settings.fixedFilling : undefined,
       },
       categories,
     )
@@ -154,9 +155,29 @@ export function LotteryScreen({ app }: Props) {
     )
     okPairCount = pairCount - sameTagPairs
   }
+  const fixedSetting = needsTwo ? app.state.settings.fixedFilling : undefined
+  const fixedInPool = !fixedSetting || filteredFillings.includes(fixedSetting)
+  let fixedPartners = 0
+  if (fixedSetting && fixedInPool) {
+    const fixedTag = categories[fixedSetting] ?? DEFAULT_CATEGORY
+    fixedPartners = filteredFillings.filter((f) => {
+      if (f === fixedSetting) return false
+      if (app.state.settings.uniqueTags) {
+        return (categories[f] ?? DEFAULT_CATEGORY) !== fixedTag
+      }
+      return true
+    }).length
+  }
   const canDrawUnique =
+    fixedInPool &&
     filteredFillings.length >= (needsTwo ? 2 : count) &&
-    (!needsTwo || okPairCount >= count)
+    (!needsTwo || (fixedSetting ? fixedPartners >= count : okPairCount >= count))
+  const fixedNotice =
+    fixedSetting && !fixedInPool
+      ? '固定する具が抽選対象にありません(除外・タグ絞り込みを確認してください)'
+      : fixedSetting && fixedPartners < count
+        ? `組み合わせが足りません(固定する具との組み合わせが${count}通り未満です)`
+        : null
 
   // 手動選択を履歴に保存
   const saveManual = () => {
@@ -273,6 +294,31 @@ export function LotteryScreen({ app }: Props) {
         </div>
       )}
 
+      {createMode === 'random' && needsTwo && (
+        <label className="select-toggle">
+          <span className="select-toggle-label">固定する具</span>
+          <select
+            className="select-toggle-select"
+            value={app.state.settings.fixedFilling ?? ''}
+            onChange={(e) => app.setFixedFilling(e.target.value || undefined)}
+            aria-label="固定する具"
+          >
+            <option value="">なし</option>
+            {filteredFillings.map((f) => (
+              <option key={f} value={f}>
+                {f}
+              </option>
+            ))}
+            {app.state.settings.fixedFilling &&
+              !filteredFillings.includes(app.state.settings.fixedFilling) && (
+                <option value={app.state.settings.fixedFilling}>
+                  {app.state.settings.fixedFilling}
+                </option>
+              )}
+          </select>
+        </label>
+      )}
+
       <div className="count-stepper" role="group" aria-label="作成個数">
         <button
           type="button"
@@ -310,7 +356,12 @@ export function LotteryScreen({ app }: Props) {
               具2つモードには具を2つ以上有効にしてください
             </p>
           )}
-          {!canDrawUnique && canSpin && (
+          {fixedNotice && canSpin && (
+            <p className="notice" role="alert">
+              {fixedNotice}
+            </p>
+          )}
+          {!canDrawUnique && canSpin && !fixedNotice && (
             <p className="notice" role="alert">
               {needsTwo && app.state.settings.uniqueTags
                 ? `組み合わせが足りません(選択できる具のペアが${count}通り未満です)`

@@ -5,6 +5,8 @@ export interface UniqueOptions {
   uniqueTags: boolean
   /** 2具モード */
   twoFillings?: boolean
+  /** 2具モードで片方に固定する具(プール外なら null を返す) */
+  fixedFilling?: string
 }
 
 interface BaseResult {
@@ -24,6 +26,7 @@ const pairKey = (a: string, b: string): string =>
  * - 2具モード: 同じペア(A×B と B×A を同一視)がセット内で重複しない(固定)
  *   (A×B と A×C、C×B と D×B など一部共通は許可)
  * - uniqueTags ON: 2具モードで組内の2具が同じタグにならない(categories が必要)
+ * - fixedFilling 指定時(2具モードのみ): 片方を固定具にし、もう片方を重複なしで抽選
  */
 export function drawSetUnique(
   fillings: string[],
@@ -32,9 +35,13 @@ export function drawSetUnique(
   options: UniqueOptions,
   categories?: Record<string, Category>,
 ): BaseResult[] | null {
-  const { uniqueTags, twoFillings = false } = options
+  const { uniqueTags, twoFillings = false, fixedFilling } = options
 
   if (fillings.length === 0) return null
+
+  // 固定モード: 2具モードで fixedFilling 指定時。プール外なら null
+  const fixed = twoFillings && fixedFilling ? fixedFilling : undefined
+  if (fixed !== undefined && !fillings.includes(fixed)) return null
 
   // 事前チェック: 1具モードは具数 >= count が必要(重複禁止は固定)
   if (!twoFillings && fillings.length < count) return null
@@ -55,6 +62,23 @@ export function drawSetUnique(
       const chosen = pick(candidates)
       usedKeys.add(chosen)
       row.filling = chosen
+    } else if (fixed !== undefined) {
+      // 2具モード固定: 片方を固定具にし、もう片方を重複なしで抽選
+      const partners = fillings.filter((f) => {
+        if (f === fixed) return false
+        if (usedKeys.has(pairKey(fixed, f))) return false
+        if (uniqueTags) {
+          const cf = categoryOf(fixed)
+          const cp = categoryOf(f)
+          if (cf !== undefined && cf === cp) return false
+        }
+        return true
+      })
+      if (partners.length === 0) return null
+      const partner = pick(partners)
+      usedKeys.add(pairKey(fixed, partner))
+      row.filling = fixed
+      row.filling2 = partner
     } else {
       // 2具モード: 組内で異なる2具 & 使用済みペアを除外(固定)
       // uniqueTags ON の場合、組内2具のタグも異なる

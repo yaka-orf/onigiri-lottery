@@ -28,6 +28,7 @@ type Action =
   | { type: 'SET_MODE'; mode: LotteryMode }
   | { type: 'SET_COUNT'; count: number }
   | { type: 'SET_UNIQUE_TAGS'; enabled: boolean }
+  | { type: 'SET_FIXED_FILLING'; filling: string | undefined }
   | { type: 'TOGGLE_SOUND' }
   | { type: 'RECORD_DRAW'; results: LotteryResult[] }
   | { type: 'TOGGLE_FAV'; id: string }
@@ -60,10 +61,15 @@ export function reducer(state: AppState, action: Action): AppState {
       const exKey =
         action.kind === 'fillings' ? 'excludedFillings' : 'excludedSeasonings'
       const excluded = state[exKey].filter((x) => x !== action.name)
+      const nextSettings =
+        action.kind === 'fillings' && state.settings.fixedFilling === action.name
+          ? { ...state.settings, fixedFilling: undefined }
+          : state.settings
       return {
         ...state,
         [action.kind]: list.filter((x) => x !== action.name),
         [exKey]: excluded,
+        settings: nextSettings,
       }
     }
     case 'UPDATE': {
@@ -76,10 +82,15 @@ export function reducer(state: AppState, action: Action): AppState {
       const excluded = state[exKey].map((x) =>
         x === action.name ? action.newName : x,
       )
+      const nextSettings =
+        action.kind === 'fillings' && state.settings.fixedFilling === action.name
+          ? { ...state.settings, fixedFilling: action.newName }
+          : state.settings
       return {
         ...state,
         [action.kind]: list.map((x) => (x === action.name ? action.newName : x)),
         [exKey]: excluded,
+        settings: nextSettings,
       }
     }
     case 'TOGGLE_EXCLUDE': {
@@ -180,6 +191,8 @@ export function reducer(state: AppState, action: Action): AppState {
       }
     case 'SET_UNIQUE_TAGS':
       return { ...state, settings: { ...state.settings, uniqueTags: action.enabled } }
+    case 'SET_FIXED_FILLING':
+      return { ...state, settings: { ...state.settings, fixedFilling: action.filling || undefined } }
     case 'TOGGLE_SOUND':
       return { ...state, soundEnabled: !state.soundEnabled }
     case 'RECORD_DRAW': {
@@ -224,6 +237,7 @@ export interface UseAppState {
   setLotteryMode: (mode: LotteryMode) => void
   setLotteryCount: (count: number) => void
   setUniqueTags: (enabled: boolean) => void
+  setFixedFilling: (filling: string | undefined) => void
   toggleSound: () => void
   setFillingCategory: (name: string, category: Category) => void
   addTag: (label: string) => boolean
@@ -288,6 +302,9 @@ export function useAppState(): UseAppState {
   }, [])
   const setUniqueTags = useCallback((enabled: boolean) => {
     dispatch({ type: 'SET_UNIQUE_TAGS', enabled })
+  }, [])
+  const setFixedFilling = useCallback((filling: string | undefined) => {
+    dispatch({ type: 'SET_FIXED_FILLING', filling })
   }, [])
   const toggleSound = useCallback(() => {
     dispatch({ type: 'TOGGLE_SOUND' })
@@ -354,6 +371,7 @@ export function useAppState(): UseAppState {
     setLotteryMode,
     setLotteryCount,
     setUniqueTags,
+    setFixedFilling,
     toggleSound,
     setFillingCategory,
     addTag,

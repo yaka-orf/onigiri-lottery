@@ -12,6 +12,8 @@ export interface LotterySettings {
   count: number
   /** セット内で同じタグの具を許可しない */
   uniqueTags: boolean
+  /** 2具モードで片方に固定する具 */
+  fixedFilling?: string
 }
 
 // --- 具カテゴリ(カスタムタグ対応) ---
@@ -190,7 +192,13 @@ export function normalizeState(raw: unknown): AppState {
         ? (raw as Record<string, unknown>).uniqueTags
         : undefined
     const uniqueTags = rawUniqueTags === true
-    return { mode, count, uniqueTags }
+    const rawFixed =
+      typeof raw === 'object' && raw !== null
+        ? (raw as Record<string, unknown>).fixedFilling
+        : undefined
+    const fixedFilling =
+      typeof rawFixed === 'string' && rawFixed.length > 0 ? rawFixed : undefined
+    return { mode, count, uniqueTags, fixedFilling }
   }
 
   // タグ正規化: id/label とも文字列のもののみ。最低1つ必要(空ならデフォルト)
@@ -255,7 +263,13 @@ export function normalizeState(raw: unknown): AppState {
       seasonings.length > 0 ? seasonings : [...defaultSeasonings],
     excludedFillings,
     excludedSeasonings,
-    settings: normalizeSettings(r.settings),
+    settings: (() => {
+      const s = normalizeSettings(r.settings)
+      if (s.fixedFilling !== undefined && !validFinalFillings.includes(s.fixedFilling)) {
+        return { ...s, fixedFilling: undefined }
+      }
+      return s
+    })(),
     soundEnabled: r.soundEnabled !== false,
     tags,
     fillingCategories: mergedCategories,

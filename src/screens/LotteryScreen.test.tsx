@@ -62,6 +62,7 @@ const mk = (overrides: Partial<UseAppState> = {}): UseAppState => ({
   toggleExcludeSeasoning: vi.fn(() => true),
   setLotteryMode: vi.fn(),
   setLotteryCount: vi.fn(),
+  setFixedFilling: vi.fn(),
   toggleSound: vi.fn(),
   setFillingCategory: vi.fn(),
   addTag: vi.fn(() => true),

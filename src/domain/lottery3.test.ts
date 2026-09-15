@@ -111,4 +111,77 @@ describe('drawSetUnique', () => {
       expect(['鮭', '梅']).toContain(x.filling)
     }
   })
+
+  it('2具モード固定: 全結果に固定具が含まれる', () => {
+    for (let trial = 0; trial < 20; trial++) {
+      const r = drawSetUnique(['鮭', '梅', 'おかか', '昆布'], ['塩'], 3, {
+        uniqueTags: false,
+        twoFillings: true,
+        fixedFilling: '鮭',
+      })
+      expect(r).not.toBeNull()
+      for (const x of r as Array<{ filling: string; filling2: string }>) {
+        expect([x.filling, x.filling2]).toContain('鮭')
+      }
+    }
+  })
+
+  it('2具モード固定: 2つ目の具が重複しない(ペア重複なしと等価)', () => {
+    const r = drawSetUnique(['鮭', '梅', 'おかか', '昆布'], ['塩'], 3, {
+      uniqueTags: false,
+      twoFillings: true,
+      fixedFilling: '鮭',
+    })
+    expect(r).not.toBeNull()
+    const partners = (r as Array<{ filling: string; filling2: string }>).map((x) =>
+      x.filling === '鮭' ? x.filling2 : x.filling,
+    )
+    expect(new Set(partners).size).toBe(3)
+  })
+
+  it('2具モード固定: 候補不足なら null(具4件・固定1件でcount=4)', () => {
+    // 固定以外の具は3件しかないため count=4 は不可
+    const r = drawSetUnique(['鮭', '梅', 'おかか', '昆布'], ['塩'], 4, {
+      uniqueTags: false,
+      twoFillings: true,
+      fixedFilling: '鮭',
+    })
+    expect(r).toBeNull()
+  })
+
+  it('2具モード固定+uniqueTags: 固定具と同タグのみでは null', () => {
+    // 鮭(fish)固定、相手候補はツナマヨ(fish)のみ → 異タグ条件で候補ゼロ
+    const r = drawSetUnique(['鮭', 'ツナマヨ'], ['塩'], 1, {
+      uniqueTags: true,
+      twoFillings: true,
+      fixedFilling: '鮭',
+    }, cats)
+    expect(r).toBeNull()
+  })
+
+  it('2具モード固定+uniqueTags: 相手は固定具と異タグのみ', () => {
+    for (let trial = 0; trial < 20; trial++) {
+      const r = drawSetUnique(
+        ['鮭', '梅', 'おかか', '昆布', 'ツナマヨ', '唐揚げ'],
+        ['塩'],
+        2,
+        { uniqueTags: true, twoFillings: true, fixedFilling: '鮭' },
+        cats,
+      )
+      expect(r).not.toBeNull()
+      for (const x of r as Array<{ filling: string; filling2: string }>) {
+        expect([x.filling, x.filling2]).toContain('鮭')
+        expect(cats[x.filling]).not.toBe(cats[x.filling2])
+      }
+    }
+  })
+
+  it('2具モード固定: 固定具がプール外なら null', () => {
+    const r = drawSetUnique(['梅', 'おかか'], ['塩'], 1, {
+      uniqueTags: false,
+      twoFillings: true,
+      fixedFilling: '鮭',
+    })
+    expect(r).toBeNull()
+  })
 })
