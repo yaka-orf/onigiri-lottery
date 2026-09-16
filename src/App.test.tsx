@@ -29,7 +29,7 @@ describe('App', () => {
       JSON.stringify({
         fillings: ['鮭', '梅', 'おかか', '昆布', 'ツナマヨ'],
         seasonings: ['塩'],
-        settings: { mode: 'one', count: 5, uniqueTags: true },
+        settings: { mode: 'one', count: 5, uniqueTags: true, tagFilterEnabled: true },
         history: [],
       }),
     )

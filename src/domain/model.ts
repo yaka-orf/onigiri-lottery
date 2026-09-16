@@ -12,6 +12,8 @@ export interface LotterySettings {
   count: number
   /** セット内で同じタグの具を許可しない */
   uniqueTags: boolean
+  /** 作成画面にタグ指定を表示する */
+  tagFilterEnabled: boolean
   /** 2具モードで片方に固定する具 */
   fixedFilling?: string
 }
@@ -73,7 +75,7 @@ export interface AppState {
   history: HistorySet[]
 }
 
-export const defaultSettings: LotterySettings = { mode: 'one', count: 5, uniqueTags: false }
+export const defaultSettings: LotterySettings = { mode: 'one', count: 5, uniqueTags: false, tagFilterEnabled: true }
 
 export const defaultFillings = [
   '鮭',
@@ -192,13 +194,18 @@ export function normalizeState(raw: unknown): AppState {
         ? (raw as Record<string, unknown>).uniqueTags
         : undefined
     const uniqueTags = rawUniqueTags === true
+    const rawTagFilter =
+      typeof raw === 'object' && raw !== null
+        ? (raw as Record<string, unknown>).tagFilterEnabled
+        : undefined
+    const tagFilterEnabled = rawTagFilter !== false
     const rawFixed =
       typeof raw === 'object' && raw !== null
         ? (raw as Record<string, unknown>).fixedFilling
         : undefined
     const fixedFilling =
       typeof rawFixed === 'string' && rawFixed.length > 0 ? rawFixed : undefined
-    return { mode, count, uniqueTags, fixedFilling }
+    return { mode, count, uniqueTags, tagFilterEnabled, fixedFilling }
   }
 
   // タグ正規化: id/label とも文字列のもののみ。最低1つ必要(空ならデフォルト)

@@ -40,7 +40,7 @@ describe('soundEnabled 正規化', () => {
       seasonings: [...defaultSeasonings],
       excludedFillings: [],
       excludedSeasonings: [],
-      settings: { mode: 'one', count: 5, uniqueTags: false },
+      settings: { mode: 'one', count: 5, uniqueTags: false, tagFilterEnabled: true },
       soundEnabled: false,
       fillingCategories: { ...defaultFillingCategories },
       tags: [],

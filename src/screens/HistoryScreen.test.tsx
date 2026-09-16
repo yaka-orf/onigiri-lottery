@@ -9,7 +9,7 @@ const setState = (history: AppState['history']): AppState => ({
   seasonings: ['塩'],
   excludedFillings: [],
   excludedSeasonings: [],
-  settings: { mode: 'one', count: 5, uniqueTags: false },
+  settings: { mode: 'one', count: 5, uniqueTags: false, tagFilterEnabled: true },
   soundEnabled: true,
   fillingCategories: { 鮭: 'fish' },
   tags: [],

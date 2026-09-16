@@ -45,15 +45,16 @@ export function LotteryScreen({ app }: Props) {
   const soundEnabled = app.state.soundEnabled
   const categories = app.state.fillingCategories
 
-  // タグ絞り込み(複数選択、空='all'相当)
+  // タグ絞り込み(複数選択、空='all'相当、詳細設定OFF時は無視)
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const toggleTag = (id: string) => {
     setSelectedTags((prev) =>
       prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id],
     )
   }
+  const tagFilterEnabled = app.state.settings.tagFilterEnabled !== false
   const filteredFillings =
-    selectedTags.length === 0
+    !tagFilterEnabled || selectedTags.length === 0
       ? fillings
       : fillings.filter((f) => {
           const cat = categories[f] ?? DEFAULT_CATEGORY
@@ -270,7 +271,7 @@ export function LotteryScreen({ app }: Props) {
         </label>
       </div>
 
-      {createMode === 'random' && (
+      {createMode === 'random' && tagFilterEnabled && (
         <div className="category-chips" role="group" aria-label="タグ絞り込み">
           <button
             type="button"

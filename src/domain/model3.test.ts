@@ -3,20 +3,20 @@ import { normalizeState, defaultSettings } from './model'
 
 describe('settings(抽選設定の永続化)', () => {
   it('デフォルトは one/5', () => {
-    expect(defaultSettings).toEqual({ mode: 'one', count: 5, uniqueTags: false })
+    expect(defaultSettings).toEqual({ mode: 'one', count: 5, uniqueTags: false, tagFilterEnabled: true })
   })
   it('旧データ(settings なし)はデフォルト設定で補完', () => {
     const r = normalizeState({ fillings: ['鮭'], seasonings: ['塩'], history: [] })
-    expect(r.settings).toEqual({ mode: 'one', count: 5, uniqueTags: false })
+    expect(r.settings).toEqual({ mode: 'one', count: 5, uniqueTags: false, tagFilterEnabled: true })
   })
   it('有効な settings はそのまま通す', () => {
     const r = normalizeState({
       fillings: ['鮭'],
       seasonings: ['塩'],
-      settings: { mode: 'two', count: 7, uniqueTags: false },
+      settings: { mode: 'two', count: 7, uniqueTags: false, tagFilterEnabled: true },
       history: [],
     })
-    expect(r.settings).toEqual({ mode: 'two', count: 7, uniqueTags: false })
+    expect(r.settings).toEqual({ mode: 'two', count: 7, uniqueTags: false, tagFilterEnabled: true })
   })
   it('不正な settings は正規化: mode は one へ、count は 1-10 にクランプ', () => {
     const r1 = normalizeState({
@@ -38,6 +38,6 @@ describe('settings(抽選設定の永続化)', () => {
       fillings: ['鮭'], seasonings: ['塩'],
       settings: 'broken', history: [],
     })
-    expect(r4.settings).toEqual({ mode: 'one', count: 5, uniqueTags: false })
+    expect(r4.settings).toEqual({ mode: 'one', count: 5, uniqueTags: false, tagFilterEnabled: true })
   })
 })

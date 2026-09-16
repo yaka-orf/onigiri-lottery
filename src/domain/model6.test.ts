@@ -70,7 +70,7 @@ describe('カスタムタグ正規化', () => {
       seasonings: ['塩'],
       excludedFillings: [],
       excludedSeasonings: [],
-      settings: { mode: 'one', count: 5, uniqueTags: false },
+      settings: { mode: 'one', count: 5, uniqueTags: false, tagFilterEnabled: true },
       soundEnabled: true,
       tags: [
         { id: 'meat', label: '肉' },

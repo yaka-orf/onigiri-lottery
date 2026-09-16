@@ -28,6 +28,7 @@ type Action =
   | { type: 'SET_MODE'; mode: LotteryMode }
   | { type: 'SET_COUNT'; count: number }
   | { type: 'SET_UNIQUE_TAGS'; enabled: boolean }
+  | { type: 'SET_TAG_FILTER'; enabled: boolean }
   | { type: 'SET_FIXED_FILLING'; filling: string | undefined }
   | { type: 'TOGGLE_SOUND' }
   | { type: 'RECORD_DRAW'; results: LotteryResult[] }
@@ -191,6 +192,8 @@ export function reducer(state: AppState, action: Action): AppState {
       }
     case 'SET_UNIQUE_TAGS':
       return { ...state, settings: { ...state.settings, uniqueTags: action.enabled } }
+    case 'SET_TAG_FILTER':
+      return { ...state, settings: { ...state.settings, tagFilterEnabled: action.enabled } }
     case 'SET_FIXED_FILLING':
       return { ...state, settings: { ...state.settings, fixedFilling: action.filling || undefined } }
     case 'TOGGLE_SOUND':
@@ -237,6 +240,7 @@ export interface UseAppState {
   setLotteryMode: (mode: LotteryMode) => void
   setLotteryCount: (count: number) => void
   setUniqueTags: (enabled: boolean) => void
+  setTagFilter: (enabled: boolean) => void
   setFixedFilling: (filling: string | undefined) => void
   toggleSound: () => void
   setFillingCategory: (name: string, category: Category) => void
@@ -302,6 +306,9 @@ export function useAppState(): UseAppState {
   }, [])
   const setUniqueTags = useCallback((enabled: boolean) => {
     dispatch({ type: 'SET_UNIQUE_TAGS', enabled })
+  }, [])
+  const setTagFilter = useCallback((enabled: boolean) => {
+    dispatch({ type: 'SET_TAG_FILTER', enabled })
   }, [])
   const setFixedFilling = useCallback((filling: string | undefined) => {
     dispatch({ type: 'SET_FIXED_FILLING', filling })
@@ -371,6 +378,7 @@ export function useAppState(): UseAppState {
     setLotteryMode,
     setLotteryCount,
     setUniqueTags,
+    setTagFilter,
     setFixedFilling,
     toggleSound,
     setFillingCategory,

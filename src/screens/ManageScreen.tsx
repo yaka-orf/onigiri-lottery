@@ -186,6 +186,14 @@ export function ManageScreen({ app }: Props) {
           <label className="setting-row">
             <input
               type="checkbox"
+              checked={app.state.settings.tagFilterEnabled !== false}
+              onChange={(e) => app.setTagFilter(e.target.checked)}
+            />
+            <span>作成画面にタグ指定を表示する</span>
+          </label>
+          <label className="setting-row">
+            <input
+              type="checkbox"
               checked={app.state.soundEnabled}
               onChange={(e) => {
                 if (e.target.checked !== app.state.soundEnabled) app.toggleSound()

@@ -38,7 +38,7 @@ const mk = (overrides: Partial<UseAppState> = {}): UseAppState => ({
     seasonings: ['塩', '醤油'],
     excludedFillings: [],
     excludedSeasonings: [],
-    settings: { mode: 'one', count: 5, uniqueTags: false },
+    settings: { mode: 'one', count: 5, uniqueTags: false, tagFilterEnabled: true },
     soundEnabled: false,
     tags: [
       { id: 'meat', label: '肉' },
@@ -111,7 +111,7 @@ describe('LotteryScreen', () => {
 
   it('fillings 0件時は「おにる！」disabled + 案内文言', () => {
     const app = mk({
-      state: { fillings: [], seasonings: ['塩'], settings: { mode: 'one', count: 5, uniqueTags: false }, history: [], tags: [], fillingCategories: {} } as any,
+      state: { fillings: [], seasonings: ['塩'], settings: { mode: 'one', count: 5, uniqueTags: false, tagFilterEnabled: true }, history: [], tags: [], fillingCategories: {} } as any,
       effectiveFillings: [],
     })
     render(<LotteryScreen app={app} />)
@@ -171,7 +171,7 @@ describe('LotteryScreen', () => {
     it('2具モードで抽選すると2つの具が「×」区切りで表示され recordDraw も2具で呼ばれる', async () => {
       // settings が two の state で直接描画して検証
       const app = mk({
-        state: { fillings: ['鮭', '梅', 'おかか', '昆布', 'ツナマヨ', '明太子', '焼きたらこ', 'たまご', '唐揚げ', 'ツナ'], seasonings: ['塩', '醤油'], settings: { mode: 'two', count: 5, uniqueTags: false }, history: [], tags: [], fillingCategories: {} } as any,
+        state: { fillings: ['鮭', '梅', 'おかか', '昆布', 'ツナマヨ', '明太子', '焼きたらこ', 'たまご', '唐揚げ', 'ツナ'], seasonings: ['塩', '醤油'], settings: { mode: 'two', count: 5, uniqueTags: false, tagFilterEnabled: true }, history: [], tags: [], fillingCategories: {} } as any,
         effectiveFillings: ['鮭', '梅', 'おかか', '昆布', 'ツナマヨ', '明太子', '焼きたらこ', 'たまご', '唐揚げ', 'ツナ'],
       })
       const { drawSetUnique } = await import('../domain/lottery3')
@@ -199,7 +199,7 @@ describe('LotteryScreen', () => {
 
     it('具が1件しかない状態で2具モードは「おにる！」disabled', () => {
       const app = mk({
-        state: { fillings: ['鮭'], seasonings: ['塩'], settings: { mode: 'two', count: 5, uniqueTags: false }, history: [], tags: [], fillingCategories: {} } as any,
+        state: { fillings: ['鮭'], seasonings: ['塩'], settings: { mode: 'two', count: 5, uniqueTags: false, tagFilterEnabled: true }, history: [], tags: [], fillingCategories: {} } as any,
         effectiveFillings: ['鮭'],
       })
       render(<LotteryScreen app={app} />)
@@ -259,7 +259,7 @@ describe('LotteryScreen', () => {
         state: {
           fillings: ['鮭', '梅', 'おかか', '昆布', 'ツナマヨ', '唐揚げ'],
           seasonings: ['塩'],
-          settings: { mode: 'two', count: 2, uniqueTags: true },
+          settings: { mode: 'two', count: 2, uniqueTags: true, tagFilterEnabled: true },
           history: [],
           tags: [],
           fillingCategories: {
@@ -281,7 +281,7 @@ describe('LotteryScreen', () => {
         state: {
           fillings: ['鮭', 'ツナマヨ'],
           seasonings: ['塩'],
-          settings: { mode: 'two', count: 1, uniqueTags: true },
+          settings: { mode: 'two', count: 1, uniqueTags: true, tagFilterEnabled: true },
           history: [],
           tags: [],
           fillingCategories: { 鮭: 'fish', ツナマヨ: 'fish' },
