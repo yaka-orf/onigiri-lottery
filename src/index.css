@@ -345,6 +345,10 @@ button.danger {
   gap: 10px;
 }
 
+.select-toggle-fixed {
+  margin-bottom: 8px;
+}
+
 .select-toggle-label {
   font-size: 13px;
   color: var(--ink-soft);

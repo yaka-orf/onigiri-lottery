@@ -13,6 +13,7 @@ export function ManageScreen({ app }: Props) {
   const [input, setInput] = useState('')
   const [editing, setEditing] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
+  const [editCategory, setEditCategory] = useState<Category>(DEFAULT_CATEGORY)
   // ドラッグ&ドロップ並べ替え状態
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [overIndex, setOverIndex] = useState<number | null>(null)
@@ -56,23 +57,40 @@ export function ManageScreen({ app }: Props) {
   const startEdit = (name: string) => {
     setEditing(name)
     setEditValue(name)
+    setEditCategory(app.state.fillingCategories[name] ?? DEFAULT_CATEGORY)
   }
 
   const saveEdit = () => {
     if (editing === null) return
     const newName = editValue.trim()
-    if (!newName || newName === editing) {
-      setEditing(null)
-      return
-    }
     if (isTags) {
       const tag = app.state.tags.find((t) => t.label === editing)
       if (tag && app.renameTag(tag.id, newName)) setEditing(null)
       return
     }
-    const ok = isFillings
-      ? app.updateFilling(editing, newName)
-      : app.updateSeasoning(editing, newName)
+    if (isFillings) {
+      const originalCat = app.state.fillingCategories[editing] ?? DEFAULT_CATEGORY
+      const catChanged = editCategory !== originalCat
+      if (!newName) {
+        setEditing(null)
+        return
+      }
+      if (newName === editing) {
+        if (catChanged) app.setFillingCategory(editing, editCategory)
+        setEditing(null)
+        return
+      }
+      if (app.updateFilling(editing, newName)) {
+        if (catChanged) app.setFillingCategory(newName, editCategory)
+        setEditing(null)
+      }
+      return
+    }
+    if (!newName || newName === editing) {
+      setEditing(null)
+      return
+    }
+    const ok = app.updateSeasoning(editing, newName)
     if (ok) setEditing(null)
   }
 
@@ -274,6 +292,20 @@ export function ManageScreen({ app }: Props) {
                     onChange={(e) => setEditValue(e.target.value)}
                     aria-label={`${name}を編集`}
                   />
+                  {isFillings && (
+                    <select
+                      className="category-select"
+                      value={editCategory}
+                      onChange={(e) => setEditCategory(e.target.value as Category)}
+                      aria-label={`${name}のタグ`}
+                    >
+                      {app.state.tags.map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.label}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                   <button type="button" onClick={saveEdit}>
                     保存
                   </button>

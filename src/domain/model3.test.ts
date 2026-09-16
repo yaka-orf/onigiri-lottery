@@ -3,20 +3,30 @@ import { normalizeState, defaultSettings } from './model'
 
 describe('settings(抽選設定の永続化)', () => {
   it('デフォルトは one/5', () => {
-    expect(defaultSettings).toEqual({ mode: 'one', count: 5, uniqueTags: false, tagFilterEnabled: true })
+    expect(defaultSettings).toEqual({ mode: 'one', count: 5, uniqueTags: false, tagFilterEnabled: false, tagFilterMigrated: true })
   })
   it('旧データ(settings なし)はデフォルト設定で補完', () => {
     const r = normalizeState({ fillings: ['鮭'], seasonings: ['塩'], history: [] })
-    expect(r.settings).toEqual({ mode: 'one', count: 5, uniqueTags: false, tagFilterEnabled: true })
+    expect(r.settings).toEqual({ mode: 'one', count: 5, uniqueTags: false, tagFilterEnabled: false, tagFilterMigrated: true })
   })
-  it('有効な settings はそのまま通す', () => {
+  it('移行前のON保存は初回にOFFへ(更新後の初回アクセス)', () => {
     const r = normalizeState({
       fillings: ['鮭'],
       seasonings: ['塩'],
-      settings: { mode: 'two', count: 7, uniqueTags: false, tagFilterEnabled: true },
+      settings: { mode: 'one', count: 5, uniqueTags: false, tagFilterEnabled: true },
       history: [],
     })
-    expect(r.settings).toEqual({ mode: 'two', count: 7, uniqueTags: false, tagFilterEnabled: true })
+    expect(r.settings.tagFilterEnabled).toBe(false)
+    expect(r.settings.tagFilterMigrated).toBe(true)
+  })
+  it('移行済みの明示ONは維持される', () => {
+    const r = normalizeState({
+      fillings: ['鮭'],
+      seasonings: ['塩'],
+      settings: { mode: 'two', count: 7, uniqueTags: false, tagFilterEnabled: true, tagFilterMigrated: true },
+      history: [],
+    })
+    expect(r.settings).toEqual({ mode: 'two', count: 7, uniqueTags: false, tagFilterEnabled: true, tagFilterMigrated: true })
   })
   it('不正な settings は正規化: mode は one へ、count は 1-10 にクランプ', () => {
     const r1 = normalizeState({
@@ -38,6 +48,6 @@ describe('settings(抽選設定の永続化)', () => {
       fillings: ['鮭'], seasonings: ['塩'],
       settings: 'broken', history: [],
     })
-    expect(r4.settings).toEqual({ mode: 'one', count: 5, uniqueTags: false, tagFilterEnabled: true })
+    expect(r4.settings).toEqual({ mode: 'one', count: 5, uniqueTags: false, tagFilterEnabled: false, tagFilterMigrated: true })
   })
 })

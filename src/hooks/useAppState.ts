@@ -87,11 +87,19 @@ export function reducer(state: AppState, action: Action): AppState {
         action.kind === 'fillings' && state.settings.fixedFilling === action.name
           ? { ...state.settings, fixedFilling: action.newName }
           : state.settings
+      const nextFillingCategories =
+        action.kind === 'fillings' && action.name in state.fillingCategories
+          ? (() => {
+              const { [action.name]: cat, ...rest } = state.fillingCategories
+              return { ...rest, [action.newName]: cat }
+            })()
+          : state.fillingCategories
       return {
         ...state,
         [action.kind]: list.map((x) => (x === action.name ? action.newName : x)),
         [exKey]: excluded,
         settings: nextSettings,
+        fillingCategories: nextFillingCategories,
       }
     }
     case 'TOGGLE_EXCLUDE': {
@@ -193,7 +201,7 @@ export function reducer(state: AppState, action: Action): AppState {
     case 'SET_UNIQUE_TAGS':
       return { ...state, settings: { ...state.settings, uniqueTags: action.enabled } }
     case 'SET_TAG_FILTER':
-      return { ...state, settings: { ...state.settings, tagFilterEnabled: action.enabled } }
+      return { ...state, settings: { ...state.settings, tagFilterEnabled: action.enabled, tagFilterMigrated: true } }
     case 'SET_FIXED_FILLING':
       return { ...state, settings: { ...state.settings, fixedFilling: action.filling || undefined } }
     case 'TOGGLE_SOUND':

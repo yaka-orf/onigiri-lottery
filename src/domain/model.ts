@@ -14,6 +14,8 @@ export interface LotterySettings {
   uniqueTags: boolean
   /** 作成画面にタグ指定を表示する */
   tagFilterEnabled: boolean
+  /** タグ指定表示の初回移行済みフラグ(更新後の初回アクセスでOFF化) */
+  tagFilterMigrated?: boolean
   /** 2具モードで片方に固定する具 */
   fixedFilling?: string
 }
@@ -75,7 +77,7 @@ export interface AppState {
   history: HistorySet[]
 }
 
-export const defaultSettings: LotterySettings = { mode: 'one', count: 5, uniqueTags: false, tagFilterEnabled: true }
+export const defaultSettings: LotterySettings = { mode: 'one', count: 5, uniqueTags: false, tagFilterEnabled: false, tagFilterMigrated: true }
 
 export const defaultFillings = [
   '鮭',
@@ -198,14 +200,20 @@ export function normalizeState(raw: unknown): AppState {
       typeof raw === 'object' && raw !== null
         ? (raw as Record<string, unknown>).tagFilterEnabled
         : undefined
-    const tagFilterEnabled = rawTagFilter !== false
+    const rawMigrated =
+      typeof raw === 'object' && raw !== null
+        ? (raw as Record<string, unknown>).tagFilterMigrated
+        : undefined
+    const wasTagFilterMigrated = rawMigrated === true
+    const tagFilterEnabled = wasTagFilterMigrated && rawTagFilter === true
+    const tagFilterMigrated = true
     const rawFixed =
       typeof raw === 'object' && raw !== null
         ? (raw as Record<string, unknown>).fixedFilling
         : undefined
     const fixedFilling =
       typeof rawFixed === 'string' && rawFixed.length > 0 ? rawFixed : undefined
-    return { mode, count, uniqueTags, tagFilterEnabled, fixedFilling }
+    return { mode, count, uniqueTags, tagFilterEnabled, tagFilterMigrated, fixedFilling }
   }
 
   // タグ正規化: id/label とも文字列のもののみ。最低1つ必要(空ならデフォルト)

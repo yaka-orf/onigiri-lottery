@@ -68,6 +68,16 @@ describe('useAppState', () => {
       expect(result.current.removeFilling('鮭')).toBe(false)
       expect(result.current.state.fillings).toEqual(['鮭'])
     })
+    it('updateFilling: 改名時にカテゴリ(タグ)も引継ぎ', () => {
+      const { result } = renderHook(() => useAppState())
+      act(() => {
+        expect(result.current.updateFilling('鮭', '味しらべ')).toBe(true)
+      })
+      expect(result.current.state.fillingCategories['味しらべ']).toBe('fish')
+      expect(result.current.state.fillingCategories['鮭']).toBeUndefined()
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)!)
+      expect(saved.fillingCategories['味しらべ']).toBe('fish')
+    })
     it('updateFilling: 正常更新・重複は拒否', () => {
       const { result } = renderHook(() => useAppState())
       act(() => {

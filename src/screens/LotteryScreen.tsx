@@ -296,7 +296,7 @@ export function LotteryScreen({ app }: Props) {
       )}
 
       {createMode === 'random' && needsTwo && (
-        <label className="select-toggle">
+        <label className="select-toggle select-toggle-fixed">
           <span className="select-toggle-label">固定する具</span>
           <select
             className="select-toggle-select"

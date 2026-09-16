@@ -109,6 +109,26 @@ describe('ManageScreen', () => {
       fireEvent.click(screen.getByRole('button', { name: '保存' }))
       expect(app.updateFilling).toHaveBeenCalledWith('鮭', '味しらべ')
     })
+    it('編集でタグのみ変更→保存で setFillingCategory 呼び出し', () => {
+      const app = mk()
+      render(<ManageScreen app={app} />)
+      fireEvent.click(screen.getAllByRole('button', { name: '編集' })[0])
+      fireEvent.change(screen.getByLabelText('鮭のタグ'), { target: { value: 'meat' } })
+      fireEvent.click(screen.getByRole('button', { name: '保存' }))
+      expect(app.setFillingCategory).toHaveBeenCalledWith('鮭', 'meat')
+      expect(app.updateFilling).not.toHaveBeenCalled()
+    })
+    it('編集で名前+タグ変更→ updateFilling と setFillingCategory 呼び出し', () => {
+      const app = mk()
+      vi.mocked(app.updateFilling).mockReturnValue(true)
+      render(<ManageScreen app={app} />)
+      fireEvent.click(screen.getAllByRole('button', { name: '編集' })[0])
+      fireEvent.change(screen.getByDisplayValue('鮭'), { target: { value: '味しらべ' } })
+      fireEvent.change(screen.getByLabelText('鮭のタグ'), { target: { value: 'meat' } })
+      fireEvent.click(screen.getByRole('button', { name: '保存' }))
+      expect(app.updateFilling).toHaveBeenCalledWith('鮭', '味しらべ')
+      expect(app.setFillingCategory).toHaveBeenCalledWith('味しらべ', 'meat')
+    })
   })
 
 
